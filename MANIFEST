@@ -1,0 +1,14 @@
+Build.pl
+Changes
+lib/Job/Machine.pod
+lib/Job/Machine/Base.pm
+lib/Job/Machine/Client.pm
+lib/Job/Machine/Worker.pm
+MANIFEST			This list of files
+t/client.t
+t/Jobconfig.pm
+t/pod.t
+t/pod_coverage.t
+t/Worker.pm
+t/worker.t
+META.yml
