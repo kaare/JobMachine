@@ -1,8 +1,10 @@
 package Job::Machine::Client;
 
-=head2 Job::Machine::Client
+=head1 NAME
 
-Base class for Job Clients
+Job::Machine::Client - Class for Job Clients
+
+=head1 METHODS
 
 =cut
 
@@ -13,7 +15,7 @@ use JSON::XS;
 
 use base 'Job::Machine::Base';
 
-=pod send
+=head2 send
 
 Send a message to the configured queue
 
@@ -31,9 +33,9 @@ sub send {
     );
 }
 
-=pod check
+=head2 check
 
-Check for reply
+Check for reply. Remember to use same id as when the initial message was sent.
 
 =cut
 
@@ -48,6 +50,12 @@ sub check {
     });
 }
 
+=head2 check
+
+Receive the reply. Remember to use same id as when the initial message was sent.
+
+=cut
+
 sub receive {
     my ( $self ) = @_;
 
@@ -59,5 +67,22 @@ sub receive {
     $stomp->disconnect();
 	return $thawed->{data};
 };
+
+=head1 SEE ALSO
+
+L<Job::Machine::Base>.
+
+=head1 AUTHOR
+
+Kaare Rasmussen <kaare@cpan.org>.
+
+=head1 COPYRIGHT
+
+Copyright (C) 2009, Kaare Rasmussen
+
+This module is free software; you can redistribute it or modify it
+under the same terms as Perl itself.
+
+=cut
 
 1;

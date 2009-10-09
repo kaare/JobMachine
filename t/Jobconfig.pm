@@ -6,11 +6,11 @@ use warnings;
 sub new {
 	my ($class) = @_;
 	return bless {
-		hostname => 'localhost',#'clover.adapt.dk',
+		hostname => 'localhost',
 		port     => 61613,
 		username => 'user',
 		password => 'password',
-		queue    => '/clientdir/queue/sub',
+		jobclass => 'job.task',
 	}, $class;
 }
 

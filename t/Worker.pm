@@ -7,10 +7,6 @@ use base 'Job::Machine::Worker';
 
 use Data::Dumper;
 
-sub id {
-	1
-};
-
 sub process {
 	my ($self, $data) = @_;
 	print Dumper $data;

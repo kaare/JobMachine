@@ -1,8 +1,8 @@
 package Job::Machine::Base;
 
-=head2 Job::Machine::base
+=head1 NAME
 
-Base class for Job Classes
+Job::Machine::Base -Base class for Job Classes
 
 =cut
 
@@ -10,17 +10,40 @@ use strict;
 use warnings;
 use Net::Stomp;
 
+=head1 METHODS
+
+=head2 Constructor
+
+  my $client = Job::Machine::Base->new(
+      hostname => 'localhost',
+      port     => 61613,
+      username => 'user',
+      password => 'password',
+      jobclass => 'queue.subqueue',
+  );
+
+Arguments:
+
+hostname and port points to your Stomp message server.
+
+username, password are just passed to the server. May not be used, depending on the server
+
+jobclass is the channel to the worker.
+
+=cut
+
 sub new {
     my ($class, %args) = @_;
 
-	my $config = {
-		hostname => 'localhost',
-		port     => 61613,
-		username => 'user',
-		password => 'password',
-		queue    => '/queue/sub',
-		%args
-	};
+    $args{queue} = '/queue/' . (delete $args{jobclass} || 'subqueue');
+
+    my $config = {
+        hostname => 'localhost',
+        port     => 61613,
+        username => 'user',
+        password => 'password',
+        %args
+    };
 
     my $stomp  = Net::Stomp->new(
         {   hostname => $config->{hostname},
@@ -28,9 +51,7 @@ sub new {
         }
     );
 
-    my $username = $config->{username};
-    my $password = $config->{password};
-    $stomp->connect( { login => $username, passcode => $password } );
+    $stomp->connect( { login => $config->{username}, passcode => $config->{password} } );
 
     return bless {
         config => $config,
@@ -38,14 +59,10 @@ sub new {
     }, $class;
 }
 
-=pod id
-
-Subclass the id generator to return the 'reply' id
-
-=cut
-
 sub id {
-    return 1;
+    my ( $self, $id ) = @_;
+    $self->{id} = $id if defined $id;
+    return $self->{id};
 }
 
 sub subscribe {
@@ -63,5 +80,18 @@ sub DESTROY {
     my $stomp = $self->{stomp};
     $stomp->disconnect() if defined $stomp;
 }
+
+=head1 AUTHOR
+
+Kaare Rasmussen <kaare@cpan.org>.
+
+=head1 COPYRIGHT
+
+Copyright (C) 2009, Kaare Rasmussen
+
+This module is free software; you can redistribute it or modify it
+under the same terms as Perl itself.
+
+=cut
 
 1;

@@ -8,6 +8,5 @@ use Jobconfig;
 use Worker;
 
 my $config = Jobconfig->new;
-
 my $worker = Worker->new(%$config);
 $worker->receive;

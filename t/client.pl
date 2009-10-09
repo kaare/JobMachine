@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
-#use warnings;
+use warnings;
 use Data::Dumper;
 
 use lib 't';
@@ -10,10 +10,8 @@ use Job::Machine::Client;
 
 my $config = Jobconfig->new;
 my $client = Job::Machine::Client->new(%$config);
-{ no warnings qw/once/;
-	*Job::Machine::Client::id = sub {1};
-}
-if ($client->check('reply')) {
+$client->id(42);
+if ($client->check) {
 	print Dumper $client->receive;
 } else {
 	$client->send({data => 'noget snavs'});
