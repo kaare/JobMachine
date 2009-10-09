@@ -10,7 +10,6 @@ Job::Machine::Client - Class for Job Clients
 
 use strict;
 use warnings;
-use Net::Stomp;
 use JSON::XS;
 
 use base 'Job::Machine::Base';
@@ -50,7 +49,7 @@ sub check {
     });
 }
 
-=head2 check
+=head2 receive
 
 Receive the reply. Remember to use same id as when the initial message was sent.
 

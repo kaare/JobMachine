@@ -12,7 +12,7 @@ use Net::Stomp;
 
 =head1 METHODS
 
-=head2 Constructor
+=head2 new
 
   my $client = Job::Machine::Base->new(
       hostname => 'localhost',

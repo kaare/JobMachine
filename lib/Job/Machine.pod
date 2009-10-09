@@ -1,3 +1,5 @@
+our $VERSION = "0.001";
+
 =pod
 
 =head1 NAME
