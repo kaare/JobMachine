@@ -3,7 +3,7 @@
 use Module::Build;
 
 my $build = Module::Build->new(
-    dist_version_from => 'lib/Job/Machine.pod',
+    dist_version_from => 'lib/Job/Machine.pm',
     module_name => 'Job::Machine',
     license     => 'perl',
     requires    => {
