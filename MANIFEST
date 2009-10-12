@@ -12,3 +12,4 @@ t/pod_coverage.t
 t/Worker.pm
 t/worker.t
 META.yml
+Makefile.PL

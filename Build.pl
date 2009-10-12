@@ -11,5 +11,7 @@ my $build = Module::Build->new(
         'Net::Stomp' => '0.34',
         'JSON::XS'   => '2.1',
     },
+    add_to_cleanup      => [ 'Job-Machine-*' ],
+    create_makefile_pl => 'traditional',
 );
 $build->create_build_script;
