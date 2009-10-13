@@ -10,7 +10,7 @@ use Data::Dumper;
 sub process {
 	my ($self, $data) = @_;
 	print Dumper $data;
-	$self->reply({data => 'et svar'});
+	$self->reply({data => "You've got nail"});
 };
 
 1;

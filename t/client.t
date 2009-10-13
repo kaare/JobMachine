@@ -18,5 +18,5 @@ $client->id(42);
 if ($client->check) {
 	print Dumper $client->receive;
 } else {
-	$client->send({data => 'noget snavs'});
+	$client->send({data => 'Try our tasty Foobar!'});
 };

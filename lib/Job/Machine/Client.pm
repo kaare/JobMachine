@@ -64,7 +64,7 @@ sub receive {
     my $thawed = decode_json( $frame->body );
     $stomp->ack( { frame => $frame } );
     $stomp->disconnect();
-	return $thawed->{data};
+	return $thawed;
 };
 
 =head1 SEE ALSO

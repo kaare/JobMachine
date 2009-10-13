@@ -1,6 +1,9 @@
+0.003 2009-10-13
+  - Remove unnecessary reply hash key
+
 0.002 2009-10-12
   - Makefile.PL for CPAN compatibility
-  
+
 0.001 2009-10-09
   - original version
   
