@@ -1,0 +1,9 @@
+TODO
+- Swap Net::Stomp for PostgreSQL's NOTIFY/LISTEN
+- tasks/jobs with expiration (including never)
+- locked flag / next try datetime
+- Wait until datetime
+- Housekeeping section
+  - remove dead tasks
+  - Find and recycle locked tasks (left by dead processes etc)
+- Task dependency / task bundling
