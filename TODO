@@ -7,3 +7,4 @@ TODO
   - remove dead tasks
   - Find and recycle locked tasks (left by dead processes etc)
 - Task dependency / task bundling
+- Scoreboard / status monitoring
