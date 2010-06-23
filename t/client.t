@@ -2,21 +2,18 @@
 
 use strict;
 use warnings;
-use Data::Dumper;
 
-use lib 't';
-use Jobconfig;
-use Job::Machine::Client;
+use Test::More tests => 4;
 
-use Test::More;
+use_ok('Job::Machine::Client','Use Client');
 
-plan skip_all => "Currently no client tests. Figuring out how to make sure there is a server" unless $ARGV[0];
-
-my $config = Jobconfig->new;
-my $client = Job::Machine::Client->new(%$config);
-$client->id(42);
-if ($client->check) {
-	print Dumper $client->receive;
-} else {
-	$client->send({data => 'Try our tasty Foobar!'});
-};
+my %config = (dsn => 'dbi:Pg:dbname=test', queue => 'qyou',);
+ok(my $client = Job::Machine::Client->new(%config),'New client');
+isa_ok($client,'Job::Machine::Client','Client class');
+ok($client->send({data => 'Try our tasty Foobar!'}),'Send a task');
+# if ($client->check) {
+	# print Dumper $client->receive;
+# } else {
+	# $client->send({data => 'Try our tasty Foobar!'});
+# };
+# 

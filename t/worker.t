@@ -2,15 +2,21 @@
 
 use strict;
 use warnings;
+use Test::More tests => 3;
 
-use lib 't';
-use Jobconfig;
-use Worker;
+my %config = (dsn => 'dbi:Pg:dbname=test', queue => 'qyou',);
+ok(my $worker = Worker->new(%config),'New Worker');
+isa_ok($worker,'Worker','Worker class');
+ok($worker->receive,'receive loop');
 
-use Test::More;
+package Worker;
 
-plan skip_all => "Currently no worker tests. Figuring out how to make sure there is a server. Also, has to break out of receive loop" unless $ARGV[0];
+use strict;
+use warnings;
 
-my $config = Jobconfig->new;
-my $worker = Worker->new(%$config);
-$worker->receive;
+use base 'Job::Machine::Worker';
+
+sub process {
+	my ($self, $data) = @_;
+	$self->reply({data => "You've got nail"});
+};

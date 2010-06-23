@@ -1,5 +1,40 @@
 package Job::Machine::Worker;
 
+use strict;
+use warnings;
+
+use base 'Job::Machine::Base';
+
+sub reply {
+	my ($self,$data,$queue) = @_;
+	$queue ||= $self->{queue};
+	$queue .= '.' . $self->id;
+	$self->result($data,$queue);
+	$self->db->notify(queue => $queue);
+}
+
+sub result {
+	my ($self,$data,$queue) = @_;
+	$queue ||= $self->{queue};
+	$self->db->insert_result($data,$queue);
+}
+
+sub receive {
+	my $self = shift;
+	my $db = $self->{db};
+	$self->subscribe;
+
+	while (my $notifies = $db->set_listen) {
+		my ($queue,$pid) = @$notifies;
+		next unless $queue;
+
+		my $task = $self->db->fetch_task($queue,$pid);
+		$self->process($task);
+	}
+};
+
+sub process {die 'Sublasss me!'}
+
 =head1 NAME
 
 Job::Machine::Worker - Base class for Job Workers
@@ -13,20 +48,11 @@ Job::Machine::Worker - Base class for Job Workers
   use base 'Job::Machine::Worker';
 
   sub process {
-      my ($self, $data) = @_;
-      ... do stuff
+	  my ($self, $data) = @_;
+	  ... do stuff
   };
 
 =head1 METHODS
-
-=cut
-
-use strict;
-use warnings;
-
-use JSON::XS;
-
-use base 'Job::Machine::Base';
 
 =head2 reply
 
@@ -34,42 +60,11 @@ use base 'Job::Machine::Base';
 
   Reply to a message. Use from within a Worker's process method.
 
-=cut
-
-sub reply {
-    my ( $self, $data ) = @_;
-    my $queue = $self->{config}{queue} . '/' . $self->id;
-    my $frozen = encode_json($data);
-    my $stomp = $self->{stomp};
-    $stomp->send(
-        {   destination => $queue,
-            body        => $frozen,
-            persistent  => 'true',
-        }
-    );
-}
-
 =head2 receive
 
   $worker->receive;
   
   Starts the Worker's receive loop.
-
-=cut
-
-sub receive {
-    my ( $self ) = @_;
-	$self->subscribe;
-	my $stomp = $self->{stomp};
-    while ( my $frame = $stomp->receive_frame ) {
-        my $thawed = decode_json( $frame->body );
-        $self->{id} = $thawed->{id};
-        $self->process($thawed->{data});
-        $stomp->ack( { frame => $frame } );
-    }
-
-    $stomp->disconnect();
-};
 
 =head2 process
 
@@ -82,14 +77,6 @@ sub receive {
 	... process $data 
 	$self->reply({answer => 'Something'});
   };
-
-=cut
-
-sub process {
-    my ( $self, $data ) = @_;
-
-	die 'Sublasss me!';
-}
 
 =head1 SEE ALSO
 
