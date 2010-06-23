@@ -8,7 +8,7 @@ my $build = Module::Build->new(
     license     => 'perl',
     requires    => {
         'perl'       => '5.8.3',
-        'DBD;;Pg'    => '2.0',
+        'DBD::Pg'    => '2.0',
     },
     add_to_cleanup      => [ 'Job-Machine-*' ],
     create_makefile_pl => 'traditional',
