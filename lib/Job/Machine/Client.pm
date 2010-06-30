@@ -47,15 +47,21 @@ Job::Machine::Client - Class for Job Clients
 
 =head2 send
 
-Send a message to the configured queue
+ Send a message to the configured queue
+
+ returns the message id.
 
 =head2 check
 
-Check for reply. Remember to use same id as when the initial message was sent.
+ Check for reply. 
+ 
+ Parameter: The message id.
 
 =head2 receive
 
-Receive the reply. Remember to use same id as when the initial message was sent.
+ Receive the reply.
+
+ Parameter: The message id.
 
 =head1 SEE ALSO
 
@@ -67,7 +73,7 @@ Kaare Rasmussen <kaare@cpan.org>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2009, Kaare Rasmussen
+Copyright (C) 2009-2010, Kaare Rasmussen
 
 This module is free software; you can redistribute it or modify it
 under the same terms as Perl itself.

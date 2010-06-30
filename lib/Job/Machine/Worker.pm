@@ -48,7 +48,7 @@ Job::Machine::Worker - Base class for Job Workers
   use base 'Job::Machine::Worker';
 
   sub process {
-	  my ($self, $data) = @_;
+	  my ($self, $task) = @_;
 	  ... do stuff
   };
 
@@ -59,6 +59,13 @@ Job::Machine::Worker - Base class for Job Workers
   $worker->reply($some_structure);
 
   Reply to a message. Use from within a Worker's process method.
+
+
+=head2 result
+
+  $worker->reslt($result_data);
+
+  Save the result of the task. Use from within a Worker's process method.
 
 =head2 receive
 
@@ -88,7 +95,7 @@ Kaare Rasmussen <kaare@cpan.org>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2009, Kaare Rasmussen
+Copyright (C) 2009-2010, Kaare Rasmussen
 
 This module is free software; you can redistribute it or modify it
 under the same terms as Perl itself.
