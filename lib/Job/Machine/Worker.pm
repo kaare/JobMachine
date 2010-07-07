@@ -33,7 +33,7 @@ sub receive {
 	}
 };
 
-sub process {die 'Sublasss me!'}
+sub process {die 'Subclasss me!'}
 
 =head1 NAME
 
@@ -63,7 +63,7 @@ Job::Machine::Worker - Base class for Job Workers
 
 =head2 result
 
-  $worker->reslt($result_data);
+  $worker->result($result_data);
 
   Save the result of the task. Use from within a Worker's process method.
 

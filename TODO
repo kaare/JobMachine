@@ -9,7 +9,10 @@ TODO
 - Housekeeping section (upon loop timeout)
   - remove dead tasks
   - Find and recycle locked tasks (left by dead processes etc)
-  - config option (or similar) to determine if tasks can be processed in a loop
+  - config option (or similar) to determine if chores can be processed in a loop
 - Task dependency / task bundling
 - Scoreboard / status monitoring
 - Job Administration
+- Schedule table, ideas
+  - cron-like?
+  - or perhaps DateTime recurring thingie

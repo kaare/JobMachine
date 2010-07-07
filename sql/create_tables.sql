@@ -34,7 +34,7 @@ COMMENT ON COLUMN task.class_id IS 'Job class to be executed';
 COMMENT ON COLUMN task.grouping IS 'Optional job group. Jobs will be retrieved by group if defined';
 COMMENT ON COLUMN task.title IS 'Optional job title';
 COMMENT ON COLUMN task.parameters IS 'from client to the scheduled task. Serialized with ??';
-COMMENT ON COLUMN task.status IS '0 - entered, 100 - processing started, 200 - processing finished, -200 - processing finished w/ error';
+COMMENT ON COLUMN task.status IS '0 - entered, 100 - processing started, 200 - processing finished, - 200 - processing finished w/ error';
 COMMENT ON COLUMN task.created IS 'Timestamp for row creation';
 COMMENT ON COLUMN task.modified IS 'Timestamp for latest update of this row';
 
