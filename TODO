@@ -12,6 +12,10 @@ TODO
   - config option (or similar) to determine if chores can be processed in a loop
 - Task dependency / task bundling
 - Scoreboard / status monitoring
+- Logging
+  - To stderr or syslog?
+  - When a task is transferred to process
+  - When do_chores does chores, removing old tasks, failing tasks
 - Job Administration
 - Schedule table, ideas
   - cron-like?

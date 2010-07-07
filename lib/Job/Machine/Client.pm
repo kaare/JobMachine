@@ -49,6 +49,15 @@ Job::Machine::Client - Class for Job Clients
 
  Send a message to the configured queue
 
+NB TODO columns to set TODO NB
+    class_id is the queue name
+    grouping some kind of coaleshing value (for some kind of get_next method in process)
+    title ??
+    parameters could be json, is that in Pg 9.0?
+    run_after default to now, but possible to set somehow
+    remove_after possible to set. If not set, make it modified +30 days when completed or failed
+NB TODO columns to set TODO NB
+
  returns the message id.
 
 =head2 check

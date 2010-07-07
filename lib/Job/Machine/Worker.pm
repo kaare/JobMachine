@@ -26,14 +26,34 @@ sub receive {
 
 	while (my $notifies = $db->set_listen) {
 		my ($queue,$pid) = @$notifies;
-		next unless $queue;
+		do_chores() && next unless $queue;
 
 		my $task = $self->db->fetch_task($queue,$pid);
+## log process call
 		$self->process($task);
 	}
 };
 
+sub do_chores {
+	my $self = shift;
+	my $db = $self->{db};
+# Find started tasks that have passed the time limit, most probably because 
+# of a dead worker. (status 100, modified < now - max_runtime)
+# - set max_runtime to something reasonable, default 30 minutes but user settable
+# Write a null result (?)
+# - Trim status so we can try again
+
+# Find tasks that have failed too many times (# of result rows > max limit
+# - fail them (Set status 900)
+# - log
+# Find tasks that should be removed (remove_task > now)
+# - delete them
+# - log
+}
+
 sub process {die 'Subclasss me!'}
+
+sub max_runtime {return 30*60}
 
 =head1 NAME
 
@@ -54,36 +74,60 @@ Job::Machine::Worker - Base class for Job Workers
 
 =head1 METHODS
 
-=head2 reply
+=head2 Methods to be subclassed
+
+A worker process always needs to subclass the process method with the
+real functionality.
+
+=head3 process
+
+ Subclassable process method.
+
+ E.g. 
+
+ sub process {
+	my ($self, $data) = @_;
+	... process $data 
+	$self->reply({answer => 'Something'});
+ };
+
+=head3 max_runtime
+
+If the default of 30 minutes isn't suitable, make this method return the
+number of seconds a process is allowed to run.
+ 
+=head2 Methods to be used from within the process method
+
+=head3 reply
 
   $worker->reply($some_structure);
 
   Reply to a message. Use from within a Worker's process method.
 
-
-=head2 result
+=head3 result
 
   $worker->result($result_data);
 
   Save the result of the task. Use from within a Worker's process method.
 
-=head2 receive
+=head3 db
+
+ Get the DB class. From this it's possible to get the database handle
+ 
+ my $dbh = $self->db->dbh;
+ 
+ If you use the same database for Job::Machine as for your other data, this
+ handle can be used by your worker module.
+
+=head3 id
+
+=head2 methods not to be disturbed
+
+=head3 receive
 
   $worker->receive;
   
   Starts the Worker's receive loop.
-
-=head2 process
-
-  Subclassable process method.
-  
-  E.g. 
-  
-  sub process {
-	my ($self, $data) = @_;
-	... process $data 
-	$self->reply({answer => 'Something'});
-  };
 
 =head1 SEE ALSO
 

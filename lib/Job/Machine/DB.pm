@@ -2,7 +2,7 @@ package Job::Machine::DB;
 
 use strict;
 use warnings;
-use Carp;
+use Carp qw/croak confess/;
 use DBI;
 use JSON::XS;
 
@@ -53,6 +53,7 @@ sub fetch_task {
 			"$self->{schema}".class c
 		WHERE
 			status=? AND t.class_id=c.class_id AND c.name=?
+			AND run_after IS NULL or run_after > now()
 		RETURNING
 			*
 	};
@@ -148,7 +149,7 @@ sub insert {
 }
 
 sub dbh {
-	Carp::confess "No database handle" unless $_[0]->{dbh};
+	confess "No database handle" unless $_[0]->{dbh};
 	$_[0]->{dbh};
 }
 

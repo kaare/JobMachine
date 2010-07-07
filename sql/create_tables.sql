@@ -23,6 +23,7 @@ CREATE TABLE task (
     parameters          text,
     status              integer NOT NULL,
     run_after           timestamp DEFAULT NULL,
+    remove_after        timestamp DEFAULT NULL,
     created             timestamp NOT NULL DEFAULT now(),
     modified            timestamp NOT NULL DEFAULT now()
 );
@@ -34,7 +35,9 @@ COMMENT ON COLUMN task.class_id IS 'Job class to be executed';
 COMMENT ON COLUMN task.grouping IS 'Optional job group. Jobs will be retrieved by group if defined';
 COMMENT ON COLUMN task.title IS 'Optional job title';
 COMMENT ON COLUMN task.parameters IS 'from client to the scheduled task. Serialized with ??';
-COMMENT ON COLUMN task.status IS '0 - entered, 100 - processing started, 200 - processing finished, - 200 - processing finished w/ error';
+COMMENT ON COLUMN task.status IS '0 - entered, 100 - processing started, 200 - processing finished, - 900 - processing finished w/ error';
+COMMENT ON COLUMN task.run_after IS 'Wait until this time to run the task';
+COMMENT ON COLUMN task.remove_after IS 'Wait until this time to delete the task';
 COMMENT ON COLUMN task.created IS 'Timestamp for row creation';
 COMMENT ON COLUMN task.modified IS 'Timestamp for latest update of this row';
 
