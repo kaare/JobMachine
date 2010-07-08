@@ -28,13 +28,13 @@ sub notify {
 }
 
 sub set_listen {
-	my $self = shift;
+	my ($self,$timeout) = @_;
 	my $dbh = $self->dbh;
 	my $notifies = $dbh->func('pg_notifies');
 	if (!$notifies) {
 		my $fd = $dbh->{pg_socket};
 		vec(my $rfds='',$fd,1) = 1;
-		my $n = select($rfds, undef, undef, $self->{timeout});
+		my $n = select($rfds, undef, undef, $timeout);
 		$notifies = $dbh->func('pg_notifies');
 	}
 	return $notifies || [0,0];

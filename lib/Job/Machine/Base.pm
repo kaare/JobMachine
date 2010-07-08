@@ -2,12 +2,12 @@ package Job::Machine::Base;
 
 use strict;
 use warnings;
+use Carp;
 use Job::Machine::DB;
 
 sub new {
 	my ($class, %args) = @_;
 	$args{db} = Job::Machine::DB->new( %args );
-	$args{timeout} ||= 300;
 	return bless \%args, $class;
 }
 
@@ -25,6 +25,12 @@ sub subscribe {
 	$self->db->listen(queue => $queue);
 }
 
+sub log {
+	my ($self, $msg) = @_;
+	$Carp::CarpLevel = 1;
+	carp($msg);
+}
+
 1;
 __END__
 =head1 NAME
@@ -37,7 +43,7 @@ Job::Machine::Base - Base class both for Client and Worker Classes
 
   my $client = Job::Machine::Base->new(
 	  dbh   => $dbh,
-	  jobclass => 'queue.subqueue',
+	  jobclass => 'queue',
 
   );
 
@@ -53,6 +59,10 @@ to open a database.
  jobclass is the channel to the worker.
  timeout is how long to wait for notifications before doing a housekeeping loop.
  Default is 5 minutes.
+
+=head2 log
+
+Give it a text and it will log it.
 
 =head1 AUTHOR
 

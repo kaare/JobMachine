@@ -16,6 +16,8 @@ use warnings;
 
 use base 'Job::Machine::Worker';
 
+sub timeout {5}
+
 sub process {
 	my ($self, $data) = @_;
 	$self->reply({data => "You've got nail"});

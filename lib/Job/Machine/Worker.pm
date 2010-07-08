@@ -10,6 +10,7 @@ sub reply {
 	$queue ||= $self->{queue};
 	$queue .= '.' . $self->id;
 	$self->result($data,$queue);
+## Payload: Status of result, result id...
 	$self->db->notify(queue => $queue);
 }
 
@@ -24,9 +25,9 @@ sub receive {
 	my $db = $self->{db};
 	$self->subscribe;
 
-	while (my $notifies = $db->set_listen) {
+	while (my $notifies = $db->set_listen($self->timeout)) {
 		my ($queue,$pid) = @$notifies;
-		do_chores() && next unless $queue;
+		$self->do_chores() && next unless $queue;
 
 		my $task = $self->db->fetch_task($queue,$pid);
 ## log process call
@@ -37,23 +38,42 @@ sub receive {
 sub do_chores {
 	my $self = shift;
 	my $db = $self->{db};
-# Find started tasks that have passed the time limit, most probably because 
-# of a dead worker. (status 100, modified < now - max_runtime)
-# - set max_runtime to something reasonable, default 30 minutes but user settable
-# Write a null result (?)
-# - Trim status so we can try again
-
-# Find tasks that have failed too many times (# of result rows > max limit
-# - fail them (Set status 900)
-# - log
-# Find tasks that should be removed (remove_task > now)
-# - delete them
-# - log
+	my @chores = (
+		sub {
+			my $self = shift;
+			$self->log('tjore 1');
+			# 1. Find started tasks that have passed the time limit, most probably because 
+			# of a dead worker. (status 100, modified < now - max_runtime)
+			# - set max_runtime to something reasonable, default 30 minutes but user settable
+			# Write a null result (?)
+			# - Trim status so we can try again
+		},
+		sub {
+			my $self = shift;
+			$self->log('tjore 2');
+			# 2. Find tasks that have failed too many times (# of result rows > max limit
+			# - fail them (Set status 900)
+			# - log
+		},
+		sub {
+			my $self = shift;
+			$self->log('tjore 3');
+			# 3. Find tasks that should be removed (remove_task > now)
+			# - delete them
+			# - log
+		},
+	);
+	my $chore = $chores[int(rand(@chores))];
+	$self->$chore;
 }
 
 sub process {die 'Subclasss me!'}
 
 sub max_runtime {return 30*60}
+
+sub timeout {return 300}
+
+sub retries {return 3}
 
 =head1 NAME
 
@@ -95,7 +115,18 @@ real functionality.
 
 If the default of 30 minutes isn't suitable, make this method return the
 number of seconds a process is allowed to run.
- 
+
+=head3 timeout
+
+If the default of 5 minutes isn't suitable, make this method return the
+number of seconds the worker should wait for inout before doing housekeeping
+chores.
+
+=head3 retries
+
+If the default of 3 times isn't suitable, make this method return the
+number of times a task is retried before failing.
+
 =head2 Methods to be used from within the process method
 
 =head3 reply

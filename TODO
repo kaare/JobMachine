@@ -10,12 +10,12 @@ TODO
   - remove dead tasks
   - Find and recycle locked tasks (left by dead processes etc)
   - config option (or similar) to determine if chores can be processed in a loop
-- Task dependency / task bundling
-- Scoreboard / status monitoring
 - Logging
-  - To stderr or syslog?
+  - To stderr or syslog? If syslog (or log4perl), DB carp -> log
   - When a task is transferred to process
   - When do_chores does chores, removing old tasks, failing tasks
+- Task dependency / task bundling
+- Scoreboard / status monitoring
 - Job Administration
 - Schedule table, ideas
   - cron-like?
