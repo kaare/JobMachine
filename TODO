@@ -1,5 +1,8 @@
 TODO
 - Finish client methods check and receive (9.0)
+  The payload of the result notification includes the result_id. fetch result using that id.
+- Does 9.0 have a native JSON type?
+  Parameters, result
 - More fine grained Worker status methods, 
   finished,failed,failure (total), declined (or wait)
 - tests, incl database, test for installed pg

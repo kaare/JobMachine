@@ -8,33 +8,24 @@ use base 'Job::Machine::Base';
 sub send {
 	my ($self, $data, $queue) = @_;
 	$queue ||= $self->{queue};
+	$queue = Job::Machine::Base::QUEUE_PREFIX . $queue;
 	my $id = $self->db->insert_task($data,$queue);
 	$self->{db}->notify(queue => $queue);
 	return $id;
 }
 
 sub check {
-	my ($self) = @_;
-	my $queue = $self->{queue} . '.' . $self->id;
+	my ($self, $id) = @_;
+	$id ||= $self->id;
+	my $queue = Job::Machine::Base::RESPONSE_PREFIX . $id;
 	$self->subscribe($queue);
-return;
-	# my $stomp    = $self->{stomp};
-	# my $can_read = $stomp->can_read({
-		# timeout     => '0.1',
-		# destination => $queue,
-	# });
+	return $self->db->get_notification;
 }
 
 sub receive {
-	my ( $self ) = @_;
-
-	# my $queue = $self->{config}{queue} . '/' . $self->id;
-	# my $stomp = $self->{stomp};
-	# my $frame = $stomp->receive_frame;
-	# my $thawed = decode_json( $frame->body );
-	# $stomp->ack( { frame => $frame } );
-	# $stomp->disconnect();
-	# return $thawed;
+	my ($self, $id) = @_;
+	$id ||= $self->id;
+	return $self->db->fetch_result($id);
 };
 
 1;

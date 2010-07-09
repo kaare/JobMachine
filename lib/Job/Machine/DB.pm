@@ -27,6 +27,13 @@ sub notify {
 	$self->{dbh}->do(qq{notify "$queue";});
 }
 
+sub get_notification {
+	my ($self,$timeout) = @_;
+	my $dbh = $self->dbh;
+	my $notifies = $dbh->func('pg_notifies');
+	return $notifies;
+}
+
 sub set_listen {
 	my ($self,$timeout) = @_;
 	my $dbh = $self->dbh;
@@ -105,6 +112,16 @@ sub insert_result {
 	$self->insert(sql => $sql,data => [$self->{task_id},$frozen]);
 }
 
+sub fetch_result {
+	my ($self,$id) = @_;
+	$self->{current_table} = 'result';
+	my $sql = qq{SELECT * FROM "$self->{schema}".$self->{current_table} WHERE task_id=? ORDER BY result_id DESC};
+	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
+
+	return decode_json($result->{result});
+
+}
+
 sub select_first {
     my ($self, %args) = @_;
 	my $sth = ($args{sth}) ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
@@ -149,17 +166,18 @@ sub insert {
 }
 
 sub dbh {
-	confess "No database handle" unless $_[0]->{dbh};
-	$_[0]->{dbh};
+	return $_[0]->{dbh} || confess "No database handle";
 }
 
+sub task_id {
+	return $_[0]->{task_id} || confess "No task id";
+}
 sub disconnect {
 	return $_[0]->{dbh}->disconnect;
 }
 
 sub DESTROY {
-    my $self  = shift;
-    $self->disconnect();
+    $_[0]->disconnect();
 }
 
 =head1 NAME

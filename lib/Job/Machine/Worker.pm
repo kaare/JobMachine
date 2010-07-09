@@ -7,11 +7,14 @@ use base 'Job::Machine::Base';
 
 sub reply {
 	my ($self,$data,$queue) = @_;
+	my $db = $self->db;
 	$queue ||= $self->{queue};
-	$queue .= '.' . $self->id;
+	$queue = Job::Machine::Base::QUEUE_PREFIX . $queue;
 	$self->result($data,$queue);
+	my $task_id = $db->task_id;
 ## Payload: Status of result, result id...
-	$self->db->notify(queue => $queue);
+	$queue = Job::Machine::Base::RESPONSE_PREFIX . $task_id;
+	$db->notify(queue => $queue);
 }
 
 sub result {
@@ -24,7 +27,6 @@ sub receive {
 	my $self = shift;
 	my $db = $self->{db};
 	$self->subscribe;
-
 	while (my $notifies = $db->set_listen($self->timeout)) {
 		my ($queue,$pid) = @$notifies;
 		$self->do_chores() && next unless $queue;

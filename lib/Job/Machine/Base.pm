@@ -5,6 +5,9 @@ use warnings;
 use Carp;
 use Job::Machine::DB;
 
+use constant QUEUE_PREFIX    => 'jm:';
+use constant RESPONSE_PREFIX => 'jmr:';
+
 sub new {
 	my ($class, %args) = @_;
 	$args{db} = Job::Machine::DB->new( %args );
