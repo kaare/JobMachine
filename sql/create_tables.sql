@@ -41,9 +41,27 @@ COMMENT ON COLUMN task.remove_after IS 'Wait until this time to delete the task'
 COMMENT ON COLUMN task.created IS 'Timestamp for row creation';
 COMMENT ON COLUMN task.modified IS 'Timestamp for latest update of this row';
 
+CREATE TABLE dependency (
+    depends             integer REFERENCES task (task_id)
+                                ON DELETE CASCADE
+                                ON UPDATE CASCADE,
+    depended            integer REFERENCES task (task_id)
+                                ON DELETE CASCADE
+                                ON UPDATE CASCADE,
+    created             timestamp NOT NULL DEFAULT now(),
+    PRIMARY KEY ()
+);
+
+COMMENT ON TABLE dependency IS 'Task dependencies';
+COMMENT ON COLUMN dependency.depends IS 'Task that depends on other task';
+COMMENT ON COLUMN dependency.depended IS 'Task that is depended on';
+COMMENT ON COLUMN dependency.created IS 'Timestamp for row creation';
+
 CREATE TABLE result (
     result_id           serial PRIMARY KEY,
-    task_id             integer REFERENCES task (task_id),
+    task_id             integer REFERENCES task (task_id)
+                                ON DELETE CASCADE
+                                ON UPDATE CASCADE,
     result              text,
     resulttype          text,
     created             timestamp NOT NULL DEFAULT now()
@@ -51,9 +69,9 @@ CREATE TABLE result (
 
 COMMENT ON TABLE result IS 'Results';
 COMMENT ON COLUMN result.result_id IS 'Unique identification';
-COMMENT ON COLUMN result.task_id IS 'Unique identification';
-COMMENT ON COLUMN result.result IS 'result of the job';
-COMMENT ON COLUMN result.resulttype IS 'type of result; xml, html, etc';
+COMMENT ON COLUMN result.task_id IS 'Task of the result';
+COMMENT ON COLUMN result.result IS 'Result of the job';
+COMMENT ON COLUMN result.resulttype IS 'Type of result; xml, html, etc';
 COMMENT ON COLUMN result.created IS 'Timestamp for row creation';
 
 CREATE TABLE schedule (
