@@ -47,7 +47,7 @@ sub set_listen {
 	return $notifies || [0,0];
 }
 
-sub fetch_task {
+sub fetch_work_task {
 	my ($self,$queue,$pid) = @_;
 	$self->{current_table} = 'task';
 	my $sql = qq{

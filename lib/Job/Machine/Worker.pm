@@ -31,7 +31,7 @@ sub receive {
 		my ($queue,$pid) = @$notifies;
 		$self->do_chores() && next unless $queue;
 
-		my $task = $self->db->fetch_task($queue,$pid);
+		my $task = $self->db->fetch_work_task($queue,$pid);
 ## log process call
 		$self->process($task);
 	}

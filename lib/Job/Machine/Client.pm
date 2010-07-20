@@ -18,7 +18,7 @@ sub check {
 	my ($self, $id) = @_;
 	$id ||= $self->id;
 	my $queue = Job::Machine::Base::RESPONSE_PREFIX . $id;
-	$self->subscribe($queue);
+	$self->{subscribed} ||= $self->subscribe($queue); # Subscribe if not already subscribed
 	return $self->db->get_notification;
 }
 
@@ -57,11 +57,15 @@ NB TODO columns to set TODO NB
  
  Parameter: The message id.
 
+ Will listen for any answers from the worker(s) and return true if there is one.
+ 
 =head2 receive
 
  Receive the reply.
 
  Parameter: The message id.
+
+ Will get the latest reply to a message or null if no reply.
 
 =head1 SEE ALSO
 

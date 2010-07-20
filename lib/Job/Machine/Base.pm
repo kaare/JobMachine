@@ -25,7 +25,7 @@ sub id {
 sub subscribe {
 	my ($self, $queue) = @_;
 	$queue ||= $self->{queue};
-	$self->db->listen(queue => $queue);
+	return $self->db->listen(queue => $queue);
 }
 
 sub log {
