@@ -15,7 +15,7 @@ eval "use DBD::Pg";
 if ($@) {
 	plan skip_all => "DBD::Pg required for testing Job::Machine::Client";
 } else {
-	plan tests => 9;
+	plan tests => 10;
 }
 
 my %config = (dsn => 'dbi:Pg:dbname=test', queue => 'qyouw',);
@@ -33,7 +33,13 @@ use base 'Job::Machine::Worker';
 use Job::Machine::Client;
 
 our $id;
-
+sub data  {
+	return {
+		message => 'Try Our Tasty Foobar!',
+		number  => 1,
+		array   => [1,2,'three',],
+	};
+};
 sub timeout {5}
 
 sub startup {
@@ -41,11 +47,12 @@ sub startup {
 	my %config = (dsn => 'dbi:Pg:dbname=test', queue => 'qyouw',);
 	ok(my $client = Job::Machine::Client->new(%config),'New client');
 	$self->{client} = $client;
-	ok($id = $client->send({data => 'Try Our Tasty Foobar!'}),'Send a task');
+	ok($id = $client->send({data => $self->data}),'Send a task');
 }
 
 sub process {
-	my ($self, $data) = @_;
+	my ($self, $task) = @_;
+	is_deeply($task->{data}, $self->data,'- Did we get what we sent?');
 	my $client = $self->{client};
 	is(my $res = $client->check($id),undef,'Check for no message');
 	my $reply = "You've got nail";
