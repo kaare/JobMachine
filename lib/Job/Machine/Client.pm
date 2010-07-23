@@ -20,6 +20,14 @@ sub check {
 	return $self->db->get_notification;
 }
 
+sub uncheck {
+	my ($self, $id) = @_;
+	$id ||= $self->id;
+	delete $self->{subscribed};
+	$self->db->unlisten(queue => $id, reply => 1);
+	return $self->db->get_notification;
+}
+
 sub receive {
 	my ($self, $id) = @_;
 	$id ||= $self->id;
@@ -56,7 +64,15 @@ NB TODO columns to set TODO NB
  Parameter: The message id.
 
  Will listen for any answers from the worker(s) and return true if there is one.
+
+=head2 uncheck
+
+ Check for reply. 
  
+ Parameter: The message id.
+
+ Will stop listening for any answers.
+
 =head2 receive
 
  Receive the reply.

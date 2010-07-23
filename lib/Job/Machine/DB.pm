@@ -24,8 +24,16 @@ sub listen {
 
     my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
 	$queue = $prefix . $queue;
-print STDERR (qq{listen "$queue";\n\n});
 	$self->{dbh}->do(qq{listen "$queue";});
+}
+
+sub unlisten {
+    my ($self, %args) = @_;
+    my $queue = $args{queue} || return undef;
+
+    my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
+	$queue = $prefix . $queue;
+	$self->{dbh}->do(qq{unlisten "$queue";});
 }
 
 sub notify {
@@ -34,7 +42,6 @@ sub notify {
 
     my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
 	$queue = $prefix . $queue;
-print STDERR (qq{notify "$queue";\n\n});
 	$self->{dbh}->do(qq{notify "$queue";});
 }
 
@@ -142,7 +149,6 @@ sub fetch_result {
 sub select_first {
     my ($self, %args) = @_;
 	my $sth = ($args{sth}) ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
-	$self->{last_sth} = $sth;
 	unless($sth->execute(@{$args{data}})) {
 		my @c = caller;
 		print STDERR "File: $c[1] line $c[2]\n";

@@ -13,6 +13,7 @@ sub reply {
 	my $task_id = $db->task_id;
 ## Payload: Status of result, result id...
 	$db->notify(queue => $task_id, reply => 1);
+	return $task_id;
 }
 
 sub result {
