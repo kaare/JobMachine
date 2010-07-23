@@ -1,9 +1,18 @@
 TODO
-- Finish client methods check and receive (9.0)
-  The payload of the result notification includes the result_id. fetch result using that id.
+
+Rough priority.
+
+0.20
+- Payload
+  Pg 9.0
+  client methods check and receive, worker method result
+  Includes the result_id. fetch result using that id
+  The payload of the result notification .
 - Pg
   How do you instruct "listen" to never return (no timeout)?
   Does 9.0 have a native JSON type? (Parameters, result)
+
+0.30
 - More fine grained Worker status methods, 
   finished,failed,failure (total), declined (or wait)
 - tests, incl database, test for installed pg
@@ -18,6 +27,8 @@ TODO
   - To stderr or syslog? If syslog (or log4perl), DB carp -> log
   - When a task is transferred to process
   - When do_chores does chores, removing old tasks, failing tasks
+
+0.40
 - Task dependency / task bundling
 - Scoreboard / status monitoring
 - Job Administration
