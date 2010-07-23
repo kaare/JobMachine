@@ -65,6 +65,10 @@ to open a database.
 
 Give it a text and it will log it.
 
+=head2 db
+
+Returns the database handle.
+
 =head1 AUTHOR
 
 Kaare Rasmussen <kaare@cpan.org>.
