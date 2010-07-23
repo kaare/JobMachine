@@ -9,7 +9,14 @@
 
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More;
+
+eval "use DBD::Pg";
+if ($@) {
+	plan skip_all => "DBD::Pg required for testing Job::Machine::Client";
+} else {
+	plan tests => 9;
+}
 
 my %config = (dsn => 'dbi:Pg:dbname=test', queue => 'qyouw',);
 ok(my $worker = Worker->new(%config),'New Worker');
@@ -41,8 +48,10 @@ sub process {
 	my ($self, $data) = @_;
 	my $client = $self->{client};
 	is(my $res = $client->check($id),undef,'Check for no message');
-	ok($self->reply({data => "You've got nail"}), 'Talking to ourself');
+	my $reply = "You've got nail";
+	ok($self->reply({data => $reply}), 'Talking to ourself');
 	ok($res = $client->receive($id),'- But do we listen?');
-	ok($res = $client->uncheck($id),'Uncheck first message');
+	is($res, $reply,'- Did we hear what we said?');
+	ok($client->uncheck($id),'Uncheck first message');
 	exit;
 };

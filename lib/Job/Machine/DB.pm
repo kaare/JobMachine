@@ -142,7 +142,7 @@ sub fetch_result {
 	my $sql = qq{SELECT * FROM "$self->{schema}".$self->{current_table} WHERE task_id=? ORDER BY result_id DESC};
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
-	return decode_json($result->{result});
+	return decode_json($result->{result})->{data};
 
 }
 

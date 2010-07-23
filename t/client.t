@@ -3,7 +3,14 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More;
+
+eval "use DBD::Pg";
+if ($@) {
+	plan skip_all => "DBD::Pg required for testing Job::Machine::Client";
+} else {
+	plan tests => 4;
+}
 
 use_ok('Job::Machine::Client','Use Client');
 
