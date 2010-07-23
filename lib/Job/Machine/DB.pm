@@ -109,6 +109,21 @@ sub insert_task {
 	$self->insert(sql => $sql,data => [$class->{class_id},$frozen,0]);
 }
 
+sub set_task_status {
+	my ($self,$status) = @_;
+	my $id = $self->task_id;
+	$self->{current_table} = 'task';
+	my $sql = qq{
+		UPDATE
+			"$self->{schema}".$self->{current_table}
+		SET
+			status=?
+		WHERE 
+			task_id=?
+	};
+	$self->update(sql => $sql,data => [$status,$id]);
+}
+
 sub fetch_class {
 	my ($self,$queue) = @_;
 	$self->{current_table} = 'class';
@@ -144,6 +159,22 @@ sub fetch_result {
 
 	return decode_json($result->{result})->{data};
 
+}
+
+# 1. Find started tasks that have passed the time limit, most probably because 
+# of a dead worker. (status 100, modified < now - max_runtime)
+# - set max_runtime to something reasonable, default 30 minutes but user settable
+# Write a null result (?)
+# - Trim status so we can try again
+sub revive_tasks {
+	my ($self) = @_;
+	$self->{current_table} = 'task';
+	my $status = 100;
+	my $max = 1800;
+	my $sql = qq{SELECT * FROM "$self->{schema}".$self->{current_table} WHERE status=? AND modified < now() - INTERVAL '$max seconds'};
+	my $result = $self->select_first(sql => $sql,data => [$status]) || return;
+use Data::Dumper;
+print STDERR Dumper $result;
 }
 
 sub select_first {
@@ -186,6 +217,11 @@ sub insert {
 	my $self = shift;
 	$self->do(@_);
 	return $self->dbh->last_insert_id(undef,$self->{schema},$self->{current_table},undef);
+}
+
+sub update {
+	my $self = shift;
+	$self->do(@_);
 }
 
 sub dbh {

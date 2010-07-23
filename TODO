@@ -1,5 +1,7 @@
 TODO
 
+- DB select_all instead of select_first for revive_tasks etc
+
 Rough priority.
 
 0.20

@@ -20,6 +20,7 @@ sub result {
 	my ($self,$data,$queue) = @_;
 	$queue ||= $self->{queue};
 	$self->db->insert_result($data,$queue);
+	$self->db->set_task_status(200);
 }
 
 sub receive {
@@ -51,12 +52,8 @@ sub _do_chores {
 	my @chores = (
 		sub {
 			my $self = shift;
-			$self->log('tjore 1');
-			# 1. Find started tasks that have passed the time limit, most probably because 
-			# of a dead worker. (status 100, modified < now - max_runtime)
-			# - set max_runtime to something reasonable, default 30 minutes but user settable
-			# Write a null result (?)
-			# - Trim status so we can try again
+			my $number = $db->revive_tasks;
+			$self->log("Revived tasks: $number");
 		},
 		sub {
 			my $self = shift;
