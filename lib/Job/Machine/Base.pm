@@ -5,9 +5,6 @@ use warnings;
 use Carp;
 use Job::Machine::DB;
 
-use constant QUEUE_PREFIX    => 'jm:';
-use constant RESPONSE_PREFIX => 'jmr:';
-
 sub new {
 	my ($class, %args) = @_;
 	$args{db} = Job::Machine::DB->new( %args );
@@ -23,9 +20,10 @@ sub id {
 }
 
 sub subscribe {
-	my ($self, $queue) = @_;
+	my ($self, $queue, $reply) = @_;
 	$queue ||= $self->{queue};
-	return $self->db->listen(queue => $queue);
+	$reply ||= 0;
+	return $self->db->listen(queue => $queue, reply => $reply);
 }
 
 sub log {

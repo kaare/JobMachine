@@ -6,6 +6,9 @@ use Carp qw/croak confess/;
 use DBI;
 use JSON::XS;
 
+use constant QUEUE_PREFIX    => 'jm:';
+use constant RESPONSE_PREFIX => 'jmr:';
+
 sub new {
     my ($class, %args) = @_;
     croak "No connect information" unless $args{dbh} or $args{dsn};
@@ -18,12 +21,20 @@ sub new {
 sub listen {
     my ($self, %args) = @_;
     my $queue = $args{queue} || return undef;
+
+    my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
+	$queue = $prefix . $queue;
+print STDERR (qq{listen "$queue";\n\n});
 	$self->{dbh}->do(qq{listen "$queue";});
 }
 
 sub notify {
     my ($self, %args) = @_;
     my $queue = $args{queue} || return undef;
+
+    my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
+	$queue = $prefix . $queue;
+print STDERR (qq{notify "$queue";\n\n});
 	$self->{dbh}->do(qq{notify "$queue";});
 }
 

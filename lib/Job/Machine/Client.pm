@@ -8,7 +8,6 @@ use base 'Job::Machine::Base';
 sub send {
 	my ($self, $data, $queue) = @_;
 	$queue ||= $self->{queue};
-	$queue = Job::Machine::Base::QUEUE_PREFIX . $queue;
 	my $id = $self->db->insert_task($data,$queue);
 	$self->{db}->notify(queue => $queue);
 	return $id;
@@ -17,8 +16,7 @@ sub send {
 sub check {
 	my ($self, $id) = @_;
 	$id ||= $self->id;
-	my $queue = Job::Machine::Base::RESPONSE_PREFIX . $id;
-	$self->{subscribed} ||= $self->subscribe($queue); # Subscribe if not already subscribed
+	$self->{subscribed} ||= $self->subscribe($id,1); # Subscribe if not already subscribed
 	return $self->db->get_notification;
 }
 
