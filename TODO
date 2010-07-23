@@ -1,6 +1,13 @@
 TODO
 
 - DB select_all instead of select_first for revive_tasks etc
+- Client send parameters
+  class_id is the queue name
+  grouping some kind of coaleshing value (for some kind of get_next method in process)
+  title ??
+  parameters could be json, is that in Pg 9.0?
+  run_after default to now, but possible to set somehow
+  remove_after possible to set. If not set, make it modified +30 days when completed or failed
 
 Rough priority.
 
@@ -15,8 +22,9 @@ Rough priority.
   Does 9.0 have a native JSON type? (Parameters, result)
 
 0.30
-- More fine grained Worker status methods, 
+- More fine grained Worker status methods (perhaps)
   finished,failed,failure (total), declined (or wait)
+- Clean up parameter passing
 - tests, incl database, test for installed pg
 - tasks/jobs with expiration (defaulting to never)
 - locked flag / next try datetime

@@ -10,13 +10,20 @@ __END__
 
 Job::Machine - Job queue handling
 
+=head1 DESCRIPTION
+
+A small, but versatile and efficient system for sending jobs to a message queue
+and communicating answers back to the sender.
+
+Job::Machine uses LISTEN / NOTIFY from PostgreSQL to send signals between
+workers and clients
+
 =head1 SYNOPSIS
 
 The Client:
 
   my $client = Job::Machine::Client->new(jobclass => 'job.task');
-  $client->id(42);
-  $client->send({foo => 'bar'});
+  my $id = $client->send({foo => 'bar'});
 
 The Worker is a subclass
 
@@ -38,14 +45,9 @@ Back at the Client:
       print $client->receive->{baz};
   }
 
-=head1 DESCRIPTION
-
-A Small, efficient system for sending jobs to a message queue and 
-communicating answers back to the sender.
-
 =head1 SUPPORT
 
-No support is available
+Report tickets to http://rt.cpan.org/Job-Machine/
 
 =head1 AUTHOR
 
