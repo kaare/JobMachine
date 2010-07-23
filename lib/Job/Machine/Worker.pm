@@ -23,6 +23,7 @@ sub result {
 
 sub receive {
 	my $self = shift;
+	$self->startup;
 	my $db = $self->{db};
 	$self->subscribe($self->{queue});
 	$self->_check_queue($self->{queue});
@@ -75,6 +76,8 @@ sub _do_chores {
 	$self->$chore;
 }
 
+sub startup {}
+
 sub process {die 'Subclasss me!'}
 
 sub max_runtime {return 30*60}
@@ -108,6 +111,12 @@ Job::Machine::Worker - Base class for Job Workers
 
 A worker process always needs to subclass the process method with the
 real functionality.
+
+=head3 startup
+
+ startup will be called before any tasks are fetched and any processing is done.
+
+ Call this method for one-time initializing.
 
 =head3 process
 
