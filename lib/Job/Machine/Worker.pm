@@ -27,17 +27,25 @@ sub receive {
 	my $self = shift;
 	my $db = $self->{db};
 	$self->subscribe;
+	$self->_check_queue($self->{queue});
 	while (my $notifies = $db->set_listen($self->timeout)) {
 		my ($queue,$pid) = @$notifies;
-		$self->do_chores() && next unless $queue;
+		$self->_do_chores() && next unless $queue;
 
-		my $task = $self->db->fetch_work_task($queue,$pid);
-## log process call
-		$self->process($task);
+	$self->_check_queue($self->{queue});
 	}
 };
 
-sub do_chores {
+sub _check_queue {
+	my $self = shift;
+	my $db = $self->{db};
+	while (my $task = $self->db->fetch_work_task($self->{queue})) {
+		## log process call
+		$self->process($task);
+	}
+}
+
+sub _do_chores {
 	my $self = shift;
 	my $db = $self->{db};
 	my @chores = (
@@ -77,6 +85,8 @@ sub timeout {return 300}
 
 sub retries {return 3}
 
+1;
+__END__
 =head1 NAME
 
 Job::Machine::Worker - Base class for Job Workers
@@ -161,6 +171,9 @@ number of times a task is retried before failing.
   $worker->receive;
   
   Starts the Worker's receive loop.
+  
+  receive subscribes the worker to the queue and waits for a message to be passed along.
+  It will first see if there are any messages to be processed.
 
 =head1 SEE ALSO
 
@@ -178,5 +191,3 @@ This module is free software; you can redistribute it or modify it
 under the same terms as Perl itself.
 
 =cut
-
-1;

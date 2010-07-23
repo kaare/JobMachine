@@ -64,7 +64,13 @@ sub fetch_work_task {
 		RETURNING
 			*
 	};
-	my $task = $self->select_first(sql => $sql,data => [100,0,$queue]) || return;
+	my $startstatus = 0; # read this
+	my $endstatus = 100; # set to this
+	my $task = $self->select_first(
+		sql => $sql,
+		data => [$endstatus,$startstatus,$queue]
+	) || return;
+
 	$self->{task_id} = $task->{task_id};
 	$task->{parameters} = decode_json( $task->{parameters} );
 	return $task;
@@ -180,6 +186,9 @@ sub DESTROY {
     $_[0]->disconnect();
 }
 
+1;
+__END__
+
 =head1 NAME
 
 Job::Machine::DB - Database class for Job::Machine
@@ -204,5 +213,3 @@ Job::Machine::DB - Database class for Job::Machine
 Sets up the listener
 
 =cut
-
-1;
