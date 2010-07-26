@@ -9,6 +9,7 @@ my $build = Module::Build->new(
     requires    => {
         'perl'       => '5.8.3',
         'DBD::Pg'    => '2.0',
+        'JSON::XS'   => '2.25',
     },
     add_to_cleanup      => [ 'Job-Machine-*' ],
     create_makefile_pl => 'traditional',

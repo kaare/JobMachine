@@ -18,7 +18,7 @@ if ($@) {
 	plan tests => 10;
 }
 
-my %config = (dsn => 'dbi:Pg:dbname=test', queue => 'qyouw',);
+my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw',);
 ok(my $worker = Worker->new(%config),'New Worker');
 isa_ok($worker,'Worker','Worker class');
 ok($worker->receive,'receive loop');
@@ -44,7 +44,7 @@ sub timeout {5}
 
 sub startup {
 	my ($self) = @_;
-	my %config = (dsn => 'dbi:Pg:dbname=test', queue => 'qyouw',);
+	my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw',);
 	ok(my $client = Job::Machine::Client->new(%config),'New client');
 	$self->{client} = $client;
 	ok($id = $client->send({data => $self->data}),'Send a task');

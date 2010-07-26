@@ -49,7 +49,7 @@ CREATE TABLE dependency (
                                 ON DELETE CASCADE
                                 ON UPDATE CASCADE,
     created             timestamp NOT NULL DEFAULT now(),
-    PRIMARY KEY ()
+    PRIMARY KEY (depends,depended)
 );
 
 COMMENT ON TABLE dependency IS 'Task dependencies';

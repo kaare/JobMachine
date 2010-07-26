@@ -33,7 +33,7 @@ sub receive {
 		my ($queue,$pid) = @$notifies;
 		$self->_do_chores() && next unless $queue;
 
-	$self->_check_queue($self->{queue});
+		$self->_check_queue($self->{queue});
 	}
 };
 
