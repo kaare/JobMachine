@@ -6,7 +6,6 @@ lib/Job/Machine/Client.pm
 lib/Job/Machine/DB.pm
 lib/Job/Machine/Worker.pm
 MANIFEST			This list of files
-promo.txt
 sql/create_tables.sql
 t/client.t
 t/pod.t
