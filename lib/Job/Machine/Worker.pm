@@ -29,12 +29,13 @@ sub receive {
 	my $db = $self->{db};
 	$self->subscribe($self->{queue});
 	$self->_check_queue($self->{queue});
-	while (my $notifies = $db->set_listen($self->timeout)) {
+	while ($self->keep_running && (my $notifies = $db->set_listen($self->timeout))) {
 		my ($queue,$pid) = @$notifies;
 		$self->_do_chores() && next unless $queue;
 
 		$self->_check_queue($self->{queue});
 	}
+	return;
 };
 
 sub _check_queue {
@@ -52,7 +53,7 @@ sub _do_chores {
 	my @chores = (
 		sub {
 			my $self = shift;
-			my $number = $db->revive_tasks;
+			my $number = $db->revive_tasks || 0;
 			$self->log("Revived tasks: $number");
 		},
 		sub {
@@ -83,6 +84,8 @@ sub max_runtime {return 30*60}
 sub timeout {return 300}
 
 sub retries {return 3}
+
+sub keep_running {return 1}
 
 1;
 __END__
@@ -130,19 +133,24 @@ real functionality.
 
 =head3 max_runtime
 
-If the default of 30 minutes isn't suitable, make this method return the
-number of seconds a process is allowed to run.
+If the default of 30 minutes isn't suitable, return the number of seconds a
+process is allowed to run.
 
 =head3 timeout
 
-If the default of 5 minutes isn't suitable, make this method return the
-number of seconds the worker should wait for inout before doing housekeeping
-chores.
+If the default of 5 minutes isn't suitable, return the number of seconds the
+worker should wait for inout before doing housekeeping chores.
+
+If you don't want the worker to perform any housekeeping tasks, return undef
 
 =head3 retries
 
-If the default of 3 times isn't suitable, make this method return the
-number of times a task is retried before failing.
+If the default of 3 times isn't suitable, return the number of times a task is
+retried before failing.
+
+=head3 keep_running
+
+Worker will wait for next message if this method returns true.
 
 =head2 Methods to be used from within the process method
 
