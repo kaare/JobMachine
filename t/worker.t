@@ -1,27 +1,4 @@
-#!perl
-
-# Flow:
-
-# Rely on client.t having sent a message (could do it ourself in startup)
-# Send a new message and set up listening
-# Reply to that message
-# Check the answer
-
-use strict;
-use warnings;
-use Test::More;
-
-eval "use DBD::Pg";
-if ($@) {
-	plan skip_all => "DBD::Pg required for testing Job::Machine::Client";
-} else {
-	plan tests => 10;
-}
-
-my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw',);
-ok(my $worker = Worker->new(%config),'New Worker');
-isa_ok($worker,'Worker','Worker class');
-ok($worker->receive,'receive loop');
+Test::Job::Machine->runtests;
 
 package Worker;
 
@@ -42,9 +19,11 @@ sub data  {
 };
 sub timeout {5}
 
+sub keep_running {0}
+
 sub startup {
 	my ($self) = @_;
-	my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw',);
+	my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw',undef,undef,{RaiseError=>0},);
 	ok(my $client = Job::Machine::Client->new(%config),'New client');
 	$self->{client} = $client;
 	ok($id = $client->send({data => $self->data}),'Send a task');
@@ -60,5 +39,34 @@ sub process {
 	ok($res = $client->receive($id),'- But do we listen?');
 	is($res, $reply,'- Did we hear what we said?');
 	ok($client->uncheck($id),'Uncheck first message');
-	exit;
+};
+
+package Test::Job::Machine;
+
+use base qw(Test::Class);
+use Test::More;
+
+sub db_name {'__jm::test__'};
+
+sub startup : Test(startup => 3) {
+	my $self = shift;
+	my $command = 'createdb -e '.db_name;
+	ok(qx{$command},'Create test database') or return;
+	$command = 'psql '.db_name.'<sql/create_tables.sql';
+	ok(qx{$command},'Create Job::Machine tables') or return;
+	ok($self->{dbh} = DBI->connect('dbi:Pg:dbname='.db_name), 'Connect to test database') or return;
+};
+
+sub cleanup : Test(shutdown) {
+	my $self = shift;
+	$self->{dbh}->disconnect;
+	my $command = 'dropdb '.db_name;
+	qx{$command};
+};
+
+sub _worker : Test(11) {
+	my %config = (dsn => 'dbi:Pg:dbname='.db_name, queue => 'qyouw',);
+	ok(my $worker = Worker->new(%config),'New Worker');
+	isa_ok($worker,'Worker','Worker class');
+	is($worker->receive,undef,'receive loop');
 };
