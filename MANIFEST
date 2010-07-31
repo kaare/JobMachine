@@ -5,9 +5,11 @@ lib/Job/Machine/Base.pm
 lib/Job/Machine/Client.pm
 lib/Job/Machine/DB.pm
 lib/Job/Machine/Worker.pm
+Makefile.PL
 MANIFEST			This list of files
+META.yml
+promo.txt
 sql/create_tables.sql
-t/client.t
 t/pod.t
 t/pod_coverage.t
 t/worker.t
