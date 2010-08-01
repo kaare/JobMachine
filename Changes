@@ -1,3 +1,6 @@
+0.011 2010-8-1
+ - Added Test::Class as a requirement
+
 0.010 2010-7-31
  - Ripped out Net::Stomp and put in PostgreSQL's notify/listen construct
  - instead.

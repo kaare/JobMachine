@@ -7,9 +7,10 @@ my $build = Module::Build->new(
     module_name => 'Job::Machine',
     license     => 'perl',
     requires    => {
-        'perl'       => '5.8.3',
-        'DBD::Pg'    => '2.0',
-        'JSON::XS'   => '2.25',
+        'perl'        => '5.8.3',
+        'DBD::Pg'     => '2.0',
+        'JSON::XS'    => '2.25',
+        'Test::Class' => '0.35',
     },
     add_to_cleanup      => [ 'Job-Machine-*' ],
     create_makefile_pl => 'traditional',

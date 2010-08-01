@@ -1,6 +1,6 @@
 package Job::Machine;
 
-our $VERSION = "0.01";
+our $VERSION = "0.011";
 
 1;
 __END__
