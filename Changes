@@ -1,3 +1,6 @@
+0.012 2010-8-2
+ - Reshuffled the test to handle missing createdb
+
 0.011 2010-8-1
  - Added Test::Class as a requirement
 

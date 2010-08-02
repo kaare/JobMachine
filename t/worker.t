@@ -1,5 +1,3 @@
-Test::Job::Machine->runtests;
-
 package Worker;
 
 use strict;
@@ -48,10 +46,11 @@ use Test::More;
 
 sub db_name {'__jm::test__'};
 
-sub startup : Test(startup => 3) {
+sub startup : Test(startup => 2) {
 	my $self = shift;
 	my $command = 'createdb -e '.db_name;
-	ok(qx{$command},'Create test database') or return;
+	qx{$command} || return $self->{skip} = 1;
+
 	$command = 'psql '.db_name.'<sql/create_tables.sql';
 	ok(qx{$command},'Create Job::Machine tables') or return;
 	ok($self->{dbh} = DBI->connect('dbi:Pg:dbname='.db_name), 'Connect to test database') or return;
@@ -59,14 +58,23 @@ sub startup : Test(startup => 3) {
 
 sub cleanup : Test(shutdown) {
 	my $self = shift;
+	return if $self->{skip};
+
 	$self->{dbh}->disconnect;
 	my $command = 'dropdb '.db_name;
 	qx{$command};
 };
 
 sub _worker : Test(11) {
+	my $self = shift;
+	return if $self->{skip};
+
 	my %config = (dsn => 'dbi:Pg:dbname='.db_name, queue => 'qyouw',);
 	ok(my $worker = Worker->new(%config),'New Worker');
 	isa_ok($worker,'Worker','Worker class');
 	is($worker->receive,undef,'receive loop');
 };
+
+package main;
+
+Test::Job::Machine->runtests;
