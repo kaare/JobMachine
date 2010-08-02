@@ -21,7 +21,7 @@ sub keep_running {0}
 
 sub startup {
 	my ($self) = @_;
-	my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw',undef,undef,{RaiseError=>0},);
+	my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw');
 	ok(my $client = Job::Machine::Client->new(%config),'New client');
 	$self->{client} = $client;
 	ok($id = $client->send({data => $self->data}),'Send a task');
