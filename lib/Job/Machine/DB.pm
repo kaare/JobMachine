@@ -163,18 +163,108 @@ sub fetch_result {
 
 # 1. Find started tasks that have passed the time limit, most probably because 
 # of a dead worker. (status 100, modified < now - max_runtime)
-# - set max_runtime to something reasonable, default 30 minutes but user settable
-# Write a null result (?)
-# - Trim status so we can try again
+# 2. Trim status so task can be tried again
+
 sub revive_tasks {
-	my ($self) = @_;
+	my ($self,$max) = @_;
 	$self->{current_table} = 'task';
 	my $status = 100;
-	my $max = 1800;
-	my $sql = qq{SELECT * FROM "$self->{schema}".$self->{current_table} WHERE status=? AND modified < now() - INTERVAL '$max seconds'};
-	my $result = $self->select_first(sql => $sql,data => [$status]) || return;
-use Data::Dumper;
-print STDERR Dumper $result;
+	my $sql = qq{
+		SELECT
+			task_id
+		FROM
+			"$self->{schema}".$self->{current_table}
+		WHERE
+			status=?
+		AND
+			modified < now() - INTERVAL '$max seconds'
+	};
+	my $result = $self->select_all(sql => $sql,data => [$status]) || return 0;
+
+	return 0 unless @$result;
+
+	my $task_ids = join ',',map {$_->{task_id}} @$result;
+	$sql = qq{
+		UPDATE
+			"$self->{schema}".$self->{current_table}
+		SET
+			status=0
+		WHERE
+			task_id IN ($task_ids)
+	};
+	$self->do(sql => $sql,data => [$status]);
+	return scalar @$result;
+}
+
+# 1. Find tasks that have failed too many times (# of result rows > $self->retries
+# 2. fail them (Set status 900)
+# There's a hard limit (100) for how many tasks can be failed at one time for
+# performance resons
+
+sub fail_tasks {
+	my ($self,$retries) = @_;
+	$self->{current_table} = 'result';
+	my $limit = 100;
+	my $sql = qq{
+		SELECT
+			task_id
+		FROM
+			"$self->{schema}".$self->{current_table}
+		GROUP BY
+			task_id
+		HAVING count(*)>?
+		LIMIT ?
+	};
+	my $result = $self->select_all(sql => $sql,data => [$retries,$limit]) || return 0;
+
+	return 0 unless @$result;
+
+	my $task_ids = join ',',map {$_->{task_id}} @$result;
+	$self->{current_table} = 'task';
+	my $status = 900;
+	$sql = qq{
+		UPDATE
+			"$self->{schema}".$self->{current_table}
+		SET
+			status=?
+		WHERE
+			task_id IN ($task_ids)
+	};
+	$self->do(sql => $sql,data => [$status]);
+	return scalar @$result;
+}
+
+# 3. Find tasks that should be removed (remove_task < now)
+# - delete them
+# - log
+sub remove_tasks {
+	my ($self,$after) = @_;
+	return 0 unless $after;
+
+	$self->{current_table} = 'task';
+	my $limit = 100;
+	my $sql = qq{
+		SELECT
+			task_id
+		FROM
+			"$self->{schema}".$self->{current_table}
+		WHERE
+			modified < now() - INTERVAL '$after days'
+	};
+	my $result = $self->select_all(sql => $sql,data => []) || return 0;
+
+	return 0 unless @$result;
+
+	my $task_ids = join ',',map {$_->{task_id}} @$result;
+	$self->{current_table} = 'task';
+	$sql = qq{
+		DELETE FROM
+			"$self->{schema}".$self->{current_table}
+		WHERE
+			task_id IN ($task_ids)
+	};
+	$self->do(sql => $sql,data => []);
+	return scalar @$result;
 }
 
 sub select_first {
@@ -188,7 +278,36 @@ sub select_first {
 	}
 	my $r = $sth->fetchrow_hashref();
 	$sth->finish();
-	return( $r );
+	return ( $r );
+}
+
+sub select_all {
+    my ($self, %args) = @_;
+	my $sth = ($args{sth}) ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+
+	$self->set_bind_type($sth,$args{data});
+	unless($sth->execute(@{$args{data}})) {
+		my @c = caller;
+		print STDERR "File: $c[1] line $c[2]\n";
+		print STDERR $args{sql}."\n" if($args{sql});
+		return 0;
+	}
+	my @result;
+	while( my $r = $sth->fetchrow_hashref) {
+			push(@result,$r);
+	}
+	return ( \@result );
+}
+
+sub set_bind_type {
+	my ($self,$sth,$data) = @_;
+	for my $i (0..scalar(@$data)-1) {
+		next unless(ref($data->[$i]));
+
+		$sth->bind_param($i+1, undef, $data->[$i]->[1]);
+		$data->[$i] = $data->[$i]->[0];
+	}
+	return;
 }
 
 sub do {
@@ -222,6 +341,7 @@ sub insert {
 sub update {
 	my $self = shift;
 	$self->do(@_);
+	return;
 }
 
 sub dbh {
@@ -237,6 +357,7 @@ sub disconnect {
 
 sub DESTROY {
     $_[0]->disconnect();
+    return;
 }
 
 1;

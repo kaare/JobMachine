@@ -53,22 +53,18 @@ sub _do_chores {
 	my @chores = (
 		sub {
 			my $self = shift;
-			my $number = $db->revive_tasks || 0;
+			my $number = $db->revive_tasks($self->max_runtime) || 0;
 			$self->log("Revived tasks: $number");
 		},
 		sub {
 			my $self = shift;
-			$self->log('tjore 2');
-			# 2. Find tasks that have failed too many times (# of result rows > max limit
-			# - fail them (Set status 900)
-			# - log
+			my $number = $db->fail_tasks($self->retries) || 0;
+			$self->log("Failed tasks: $number");
 		},
 		sub {
 			my $self = shift;
-			$self->log('tjore 3');
-			# 3. Find tasks that should be removed (remove_task > now)
-			# - delete them
-			# - log
+			my $number = $db->remove_tasks($self->remove_after) || 0;
+			$self->log("Removed tasks: $number");
 		},
 	);
 	my $chore = $chores[int(rand(@chores))];
@@ -84,6 +80,8 @@ sub max_runtime {return 30*60}
 sub timeout {return 300}
 
 sub retries {return 3}
+
+sub remove_after {return 30}
 
 sub keep_running {return 1}
 
@@ -134,7 +132,10 @@ real functionality.
 =head3 max_runtime
 
 If the default of 30 minutes isn't suitable, return the number of seconds a
-process is allowed to run.
+process is expected to run.
+
+A task will not be killed if it runs for longer than max_runtime. This setting
+is only used when reviving tasks that are suspected to be dead.
 
 =head3 timeout
 
@@ -147,6 +148,14 @@ If you don't want the worker to perform any housekeeping tasks, return undef
 
 If the default of 3 times isn't suitable, return the number of times a task is
 retried before failing.
+
+=head3 remove_after
+
+If the default of 30 days isn't suitable, return the number of days a task will
+remain in the database before being removed.
+
+Return 0 if you never want tasks to be removed.
+
 
 =head3 keep_running
 

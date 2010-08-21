@@ -28,8 +28,10 @@ sub subscribe {
 
 sub log {
 	my ($self, $msg) = @_;
-	$Carp::CarpLevel = 1;
-	carp($msg);
+	print STDERR $msg, "\n";
+	return;
+	# $Carp::CarpLevel = 1;
+	# carp($msg);
 }
 
 1;

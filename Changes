@@ -1,3 +1,11 @@
+0.13 2010-8-21
+ - Wrote housekeeping functionality, revive_tasks, fail_tasks, remove_tasks
+ - Added select_all to DB
+ - Added subclassable remove_after method to Worker
+ - Bumped version number a bit to reflect the ready state of the module
+ - Added examples/ directory
+ - 
+
 0.012 2010-8-2
  - Reshuffled the test to handle missing createdb
 
