@@ -1,7 +1,5 @@
 package Job::Machine;
 
-our $VERSION = "0.13";
-
 1;
 __END__
 =pod
