@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+
+0.14    2010-12-03 09:45:17 Europe/Copenhagen
  - Begin using Dist::Zilla
 
 0.13 2010-8-21
