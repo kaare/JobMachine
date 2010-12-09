@@ -8,19 +8,11 @@ __END__
 
 Job::Machine - Job queue handling
 
-=head1 DESCRIPTION
-
-A small, but versatile and efficient system for sending jobs to a message queue
-and communicating answers back to the sender.
-
-Job::Machine uses LISTEN / NOTIFY from PostgreSQL to send signals between
-workers and clients
-
 =head1 SYNOPSIS
 
 The Client:
 
-  my $client = Job::Machine::Client->new(jobclass => 'job.task');
+  my $client = Job::Machine::Client->new(queue => 'job.task');
   my $id = $client->send({foo => 'bar'});
 
 The Worker is a subclass
@@ -34,7 +26,7 @@ The Worker is a subclass
 
 and then use the worker
 
-  my $worker = Worker->new(jobclass => 'job.task');
+  my $worker = Worker->new(queue => 'job.task');
   $worker->receive;
 
 Back at the Client:
@@ -42,6 +34,42 @@ Back at the Client:
   if ($client->check('reply')) {
       print $client->receive->{baz};
   }
+
+=head1 DESCRIPTION
+
+A small, but versatile system for sending jobs to a message queue and, if necessary,
+communicating answers back to the sender.
+
+Job::Machine uses LISTEN / NOTIFY from PostgreSQL to send signals between
+clients and workers. This ensures very efficient message passing, giving any
+worker that is awake the chance to start working immediately.
+
+=head2 Database Connection
+
+Both client and worker accepts a Database Handle (dbh), or a Data Source Name (dsn).
+
+From scratch:
+
+  my $client = Job::Machine::Client->new(
+    dsn => 'dbi:Pg:dbname=jobqueue',
+    queue => 'my.queue',
+  );
+
+Hot Handle:
+
+  my $dbh = $self->existing_dbh;
+  my $client = Job::Machine::Client->new(
+    dbh => $dbh,
+    queue => 'my.queue',
+  );
+
+=head2 Queue
+
+Normally the queue name is passed as a parameter to new, but it can be overriden
+for any method call.
+
+The queue can be named anything PostgreSQL accepts. A good idea is to maintain a
+hierarchical structure. e.g. I<gl.accounting> or I<message.email>.
 
 =head1 SUPPORT
 

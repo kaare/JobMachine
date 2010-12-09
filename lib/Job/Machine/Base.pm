@@ -46,7 +46,7 @@ Job::Machine::Base - Base class both for Client and Worker Classes
 
   my $client = Job::Machine::Base->new(
 	  dbh   => $dbh,
-	  jobclass => 'queue',
+	  queue => 'queue',
 
   );
 
@@ -59,7 +59,7 @@ Arguments:
 Either provide an already warm database handle, or give a new array to tell how
 to open a database.
 
- jobclass is the channel to the worker.
+ queue is the channel to the worker.
  timeout is how long to wait for notifications before doing a housekeeping loop.
  Default is 5 minutes.
 

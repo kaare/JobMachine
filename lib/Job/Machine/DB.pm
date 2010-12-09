@@ -373,7 +373,7 @@ Job::Machine::DB - Database class for Job::Machine
 
   my $client = Job::Machine::DB->new(
       dbh   => $dbh,
-      jobclass => 'queue.subqueue',
+      queue => 'queue.subqueue',
 
   );
 
