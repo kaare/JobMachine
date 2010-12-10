@@ -352,7 +352,7 @@ sub task_id {
 	return $_[0]->{task_id} || confess "No task id";
 }
 sub disconnect {
-	return $_[0]->{dbh}->disconnect;
+	return $_[0]->{dbh}->disconnect if $_[0]->{dbh};
 }
 
 sub DESTROY {
