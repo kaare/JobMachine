@@ -1,5 +1,11 @@
 TODO
 
+0.15
+- Defect: result only accepts structure (array/hash-ref)
+  Make it accept scalar and undef.
+- accessor for task data
+
+0.1x
 - DB select_all instead of select_first for revive_tasks etc
 - Client send parameters
   class_id is the queue name
@@ -8,7 +14,6 @@ TODO
   parameters could be json, is that in Pg 9.0?
   run_after default to now, but possible to set somehow
   remove_after possible to set. If not set, make it modified +30 days when completed or failed
-- accessor for task data
 
 Rough priority.
 

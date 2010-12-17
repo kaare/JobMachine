@@ -169,11 +169,15 @@ Worker will wait for next message if this method returns true.
 
   Reply to a message. Use from within a Worker's process method.
 
+  Marks the task as done,
+
 =head3 result
 
   $worker->result($result_data);
 
   Save the result of the task. Use from within a Worker's process method.
+
+  Marks the task as done,
 
 =head3 db
 
