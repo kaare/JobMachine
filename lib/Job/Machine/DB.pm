@@ -90,7 +90,7 @@ sub fetch_work_task {
 	) || return;
 
 	$self->{task_id} = $task->{task_id};
-	$task->{data} = decode_json( delete $task->{parameters} )->{data};
+	$task->{data} = decode_json( delete $task->{parameters} );
 	return $task;
 }
 

@@ -8,6 +8,7 @@ TODO
   parameters could be json, is that in Pg 9.0?
   run_after default to now, but possible to set somehow
   remove_after possible to set. If not set, make it modified +30 days when completed or failed
+- accessor for task data
 
 Rough priority.
 

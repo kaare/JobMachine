@@ -29,7 +29,7 @@ sub startup {
 
 sub process {
 	my ($self, $task) = @_;
-	is_deeply($task->{data}, $self->data,'- Did we get what we sent?');
+	is_deeply($task->{data}->{data}, $self->data,'- Did we get what we sent?');
 	my $client = $self->{client};
 	is(my $res = $client->check($id),undef,'Check for no message');
 	my $reply = "You've got nail";
