@@ -156,7 +156,6 @@ remain in the database before being removed.
 
 Return 0 if you never want tasks to be removed.
 
-
 =head3 keep_running
 
 Worker will wait for next message if this method returns true.
@@ -189,6 +188,8 @@ Worker will wait for next message if this method returns true.
  handle can be used by your worker module.
 
 =head3 id
+
+  Get the current task id.
 
 =head2 methods not to be disturbed
 
