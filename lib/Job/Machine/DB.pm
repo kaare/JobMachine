@@ -333,7 +333,9 @@ sub do {
 		$sth = $self->{last_sth} || return undef;
 	}
 	$self->{last_sth} = $sth;
-	return $sth->execute(@{$args{data}});
+	$sth->execute(@{$args{data}});
+	return $sth->rows;
+
 }
 
 sub prepare {
