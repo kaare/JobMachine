@@ -219,7 +219,7 @@ sub revive_tasks {
 			modified < now() - INTERVAL '$max seconds'
 	};
 	my $result = $self->do(sql => $sql,data => [$status]);
-	return scalar @$result;
+	return $result;
 }
 
 # 1. Find tasks that have failed too many times (# of result rows > $self->retries
@@ -276,7 +276,7 @@ sub remove_tasks {
 			modified < now() - INTERVAL '$after days'
 	};
 	my $result = $self->do(sql => $sql,data => []);
-	return scalar @$result;
+	return $result;
 }
 
 sub select_first {
@@ -333,7 +333,9 @@ sub do {
 		$sth = $self->{last_sth} || return undef;
 	}
 	$self->{last_sth} = $sth;
-	return $sth->execute(@{$args{data}});
+	$sth->execute(@{$args{data}});
+	return $sth->rows;
+
 }
 
 sub prepare {
