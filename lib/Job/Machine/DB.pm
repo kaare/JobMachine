@@ -209,29 +209,16 @@ sub revive_tasks {
 	$self->{current_table} = 'task';
 	my $status = 100;
 	my $sql = qq{
-		SELECT
-			task_id
-		FROM
-			"$self->{schema}".$self->{current_table}
-		WHERE
-			status=?
-		AND
-			modified < now() - INTERVAL '$max seconds'
-	};
-	my $result = $self->select_all(sql => $sql,data => [$status]) || return 0;
-
-	return 0 unless @$result;
-
-	my $task_ids = join ',',map {$_->{task_id}} @$result;
-	$sql = qq{
 		UPDATE
 			"$self->{schema}".$self->{current_table}
 		SET
 			status=0
 		WHERE
-			task_id IN ($task_ids)
+			status=?
+		AND
+			modified < now() - INTERVAL '$max seconds'
 	};
-	$self->do(sql => $sql,data => [$status]);
+	my $result = $self->do(sql => $sql,data => [$status]);
 	return scalar @$result;
 }
 
@@ -256,7 +243,6 @@ sub fail_tasks {
 		LIMIT ?
 	};
 	my $result = $self->select_all(sql => $sql,data => [$retries,$limit]) || return 0;
-
 	return 0 unless @$result;
 
 	my $task_ids = join ',',map {$_->{task_id}} @$result;
@@ -284,26 +270,12 @@ sub remove_tasks {
 	$self->{current_table} = 'task';
 	my $limit = 100;
 	my $sql = qq{
-		SELECT
-			task_id
-		FROM
+		DELETE FROM
 			"$self->{schema}".$self->{current_table}
 		WHERE
 			modified < now() - INTERVAL '$after days'
 	};
-	my $result = $self->select_all(sql => $sql,data => []) || return 0;
-
-	return 0 unless @$result;
-
-	my $task_ids = join ',',map {$_->{task_id}} @$result;
-	$self->{current_table} = 'task';
-	$sql = qq{
-		DELETE FROM
-			"$self->{schema}".$self->{current_table}
-		WHERE
-			task_id IN ($task_ids)
-	};
-	$self->do(sql => $sql,data => []);
+	my $result = $self->do(sql => $sql,data => []);
 	return scalar @$result;
 }
 
