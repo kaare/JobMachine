@@ -123,6 +123,8 @@ sub insert_task {
 			(class_id,parameters,status)
 		VALUES
 			(?,?,?)
+		RETURNING
+			task_id
 	};
 	$self->insert(sql => $sql,data => [$class->{class_id},$frozen,0]);
 }
@@ -165,7 +167,7 @@ sub insert_class {
 		VALUES
 			(?)
 		RETURNING
-			*
+			task_id
 	};
 	$self->select_first(sql => $sql,data => [$queue]);
 }
@@ -180,6 +182,8 @@ sub insert_result {
 			(task_id,result)
 		VALUES
 			(?,?)
+		RETURNING
+			result_id
 	};
 	$self->insert(sql => $sql,data => [$self->{task_id},$frozen]);
 }
@@ -284,7 +288,8 @@ sub remove_tasks {
 
 sub select_first {
     my ($self, %args) = @_;
-	my $sth = ($args{sth}) ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+
 	unless($sth->execute(@{$args{data}})) {
 		my @c = caller;
 		print STDERR "File: $c[1] line $c[2]\n";
@@ -298,7 +303,7 @@ sub select_first {
 
 sub select_all {
     my ($self, %args) = @_;
-	my $sth = ($args{sth}) ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
 
 	$self->set_bind_type($sth,$args{data});
 	unless($sth->execute(@{$args{data}})) {
@@ -327,32 +332,21 @@ sub set_bind_type {
 
 sub do {
 	my ($self, %args) = @_;
-	my $sth;
-	if ($args{sth}) {
-		$sth = $args{sth};
-	} elsif ($args{sql}) {
-		$sth = $self->dbh->prepare($args{sql});
-	} else {
-		$sth = $self->{last_sth} || return undef;
-	}
+	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+
 	$self->{last_sth} = $sth;
 	$sth->execute(@{$args{data}});
 	return $sth->rows;
 
 }
 
-sub prepare {
+sub insert {
 	my ($self, %args) = @_;
-	my $sth = $self->dbh->prepare($args{sql} || return undef) || return undef;
+	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
 
 	$self->{last_sth} = $sth;
-	return $sth;
-}
-
-sub insert {
-	my $self = shift;
-	$self->do(@_);
-	return $self->dbh->last_insert_id(undef,$self->{schema},$self->{current_table},undef);
+	$sth->execute(@{$args{data}});
+	return $sth->fetch()->[0];
 }
 
 sub update {

@@ -51,7 +51,10 @@ Job::Machine::Base - Base class both for Client and Worker Classes
   );
 
   my $client = Job::Machine::Base->new(
-	  dsn   => @dsn,
+	  dsn      => $dsn,
+	  user     => $user,
+	  password => $password,
+	  db_attr  => $db_attributes
   );
 
 Arguments:
