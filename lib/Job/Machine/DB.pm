@@ -13,8 +13,11 @@ sub new {
     my ($class, %args) = @_;
     croak "No connect information" unless $args{dbh} or $args{dsn};
 
-	$args{dbh}    ||= DBI->connect($args{dsn});
-	$args{schema} ||= 'jobmachine';
+	$args{user}     ||= undef;
+	$args{password} ||= undef;
+	$args{db_attr}  ||= undef;
+	$args{dbh}      ||= DBI->connect($args{dsn},$args{user},$args{password},$args{db_attr});
+	$args{schema}   ||= 'jobmachine';
     return bless \%args, $class;
 }
 
