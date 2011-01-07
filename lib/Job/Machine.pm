@@ -71,6 +71,25 @@ for any method call.
 The queue can be named anything PostgreSQL accepts. A good idea is to maintain a
 hierarchical structure. e.g. I<gl.accounting> or I<message.email>.
 
+=head2 Extra Parameters
+
+You might have some already initialized data you want to pass to your worker
+instance. Job::Machine just pushes any extra parameter you send it into the
+object, so you can always access it from your process method.
+
+There's no reason to repeat your configuration process in the worker if you already
+have it when the worker starts:
+
+	my $config = C<some lenghty process>
+
+	my $worker = SMSio::Worker::CPA->new(
+		...
+		config => $config,
+	);
+	$worker->receive;
+
+You can access $self->{config} e.g. in your worker's startup and process methods.
+
 =head1 SUPPORT
 
 Report tickets to http://rt.cpan.org/Job-Machine/
