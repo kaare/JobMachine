@@ -25,6 +25,11 @@ sub startup {
 	ok(my $client = Job::Machine::Client->new(%config),'New client');
 	$self->{client} = $client;
 	ok($id = $client->send({data => $self->data}),'Send a task');
+	$config{queue} = 'q';
+	my $id2;
+	ok(my $client2 = Job::Machine::Client->new(%config),'Another client');
+	ok($id2 = $client2->send({data => $self->data}),'Send another task');
+	ok($client2->uncheck($id2),'Uncheck first message');
 }
 
 sub process {
@@ -59,7 +64,6 @@ sub startup : Test(startup => 2) {
 sub cleanup : Test(shutdown) {
 	my $self = shift;
 	return if $self->{skip};
-
 	$self->{dbh}->disconnect;
 	my $command = 'dropdb '.db_name;
 	qx{$command};
@@ -69,7 +73,7 @@ sub _worker : Test(11) {
 	my $self = shift;
 	return if $self->{skip};
 
-	my %config = (dsn => 'dbi:Pg:dbname='.db_name, queue => 'qyouw',);
+	my %config = (dsn => 'dbi:Pg:dbname='.db_name, queue => [qw/qyouw q/],);
 	ok(my $worker = Worker->new(%config),'New Worker');
 	isa_ok($worker,'Worker','Worker class');
 	is($worker->receive,undef,'receive loop');

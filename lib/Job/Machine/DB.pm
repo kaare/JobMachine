@@ -12,6 +12,7 @@ use constant RESPONSE_PREFIX => 'jmr:';
 sub new {
     my ($class, %args) = @_;
     croak "No connect information" unless $args{dbh} or $args{dsn};
+    croak "invalid queue" if ref $args{queue} and ref $args{queue} ne 'ARRAY';
 
 	$args{user}     ||= undef;
 	$args{password} ||= undef;
@@ -26,8 +27,9 @@ sub listen {
     my $queue = $args{queue} || return undef;
 
     my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
-	$queue = $prefix . $queue;
-	$self->{dbh}->do(qq{listen "$queue";});
+    for my $q (ref $queue ? @$queue : ($queue)) {
+		$self->{dbh}->do(qq{listen "$prefix$q";});
+	}
 }
 
 sub unlisten {
@@ -35,8 +37,9 @@ sub unlisten {
     my $queue = $args{queue} || return undef;
 
     my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
-	$queue = $prefix . $queue;
-	$self->{dbh}->do(qq{unlisten "$queue";});
+    for my $q (ref $queue ? @$queue : ($queue)) {
+		$self->{dbh}->do(qq{unlisten "$prefix$q";});
+	}
 }
 
 sub notify {
@@ -69,7 +72,8 @@ sub set_listen {
 }
 
 sub fetch_work_task {
-	my ($self,$queue,$pid) = @_;
+	my ($self,$pid) = @_;
+	my $queue = ref $self->{queue} ? $self->{queue} : [$self->{queue}];
 	$self->{current_table} = 'task';
 	my $sql = qq{
 		UPDATE
@@ -77,7 +81,11 @@ sub fetch_work_task {
 		SET
 			status=100,
 			modified=default
+		FROM
+			"jobmachine".class cx
 		WHERE
+			t.class_id = cx.class_id
+		AND
 			task_id = (
 				SELECT
 					min(task_id)
@@ -90,7 +98,9 @@ sub fetch_work_task {
 				WHERE
 					t.status=0
 				AND
-					c.name=?
+					c.name IN (}.
+		join(',', ('?') x @$queue)
+		.qq{)
 				AND
 					t.run_after IS NULL
 				OR
@@ -104,7 +114,7 @@ sub fetch_work_task {
 	};
 	my $task = $self->select_first(
 		sql => $sql,
-		data => [$queue]
+		data => $queue
 	) || return;
 
 	$self->{task_id} = $task->{task_id};
@@ -167,7 +177,7 @@ sub insert_class {
 		VALUES
 			(?)
 		RETURNING
-			task_id
+			class_id
 	};
 	$self->select_first(sql => $sql,data => [$queue]);
 }
@@ -362,6 +372,7 @@ sub dbh {
 sub task_id {
 	return $_[0]->{task_id} || confess "No task id";
 }
+
 sub disconnect {
 	return $_[0]->{dbh}->disconnect if $_[0]->{dbh};
 }
