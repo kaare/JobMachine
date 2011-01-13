@@ -10,40 +10,40 @@ use constant QUEUE_PREFIX    => 'jm:';
 use constant RESPONSE_PREFIX => 'jmr:';
 
 sub new {
-    my ($class, %args) = @_;
-    croak "No connect information" unless $args{dbh} or $args{dsn};
+	my ($class, %args) = @_;
+	croak "No connect information" unless $args{dbh} or $args{dsn};
 
 	$args{user}     ||= undef;
 	$args{password} ||= undef;
 	$args{db_attr}  ||= undef;
 	$args{dbh}      ||= DBI->connect($args{dsn},$args{user},$args{password},$args{db_attr});
 	$args{schema}   ||= 'jobmachine';
-    return bless \%args, $class;
+	return bless \%args, $class;
 }
 
 sub listen {
-    my ($self, %args) = @_;
-    my $queue = $args{queue} || return undef;
+	my ($self, %args) = @_;
+	my $queue = $args{queue} || return undef;
 
-    my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
+	my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
 	$queue = $prefix . $queue;
 	$self->{dbh}->do(qq{listen "$queue";});
 }
 
 sub unlisten {
-    my ($self, %args) = @_;
-    my $queue = $args{queue} || return undef;
+	my ($self, %args) = @_;
+	my $queue = $args{queue} || return undef;
 
-    my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
+	my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
 	$queue = $prefix . $queue;
 	$self->{dbh}->do(qq{unlisten "$queue";});
 }
 
 sub notify {
-    my ($self, %args) = @_;
-    my $queue = $args{queue} || return undef;
+	my ($self, %args) = @_;
+	my $queue = $args{queue} || return undef;
 
-    my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
+	my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
 	$queue = $prefix . $queue;
 	$self->{dbh}->do(qq{notify "$queue";});
 }
@@ -287,7 +287,7 @@ sub remove_tasks {
 }
 
 sub select_first {
-    my ($self, %args) = @_;
+	my ($self, %args) = @_;
 	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
 
 	unless($sth->execute(@{$args{data}})) {
@@ -302,7 +302,7 @@ sub select_first {
 }
 
 sub select_all {
-    my ($self, %args) = @_;
+	my ($self, %args) = @_;
 	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
 
 	$self->set_bind_type($sth,$args{data});
@@ -367,8 +367,8 @@ sub disconnect {
 }
 
 sub DESTROY {
-    $_[0]->disconnect();
-    return;
+	$_[0]->disconnect();
+	return;
 }
 
 1;
@@ -383,13 +383,13 @@ Job::Machine::DB - Database class for Job::Machine
 =head2 new
 
   my $client = Job::Machine::DB->new(
-      dbh   => $dbh,
-      queue => 'queue.subqueue',
+	  dbh   => $dbh,
+	  queue => 'queue.subqueue',
 
   );
 
   my $client = Job::Machine::Base->new(
-      dsn   => @dsn,
+	  dsn   => @dsn,
   );
 
 
