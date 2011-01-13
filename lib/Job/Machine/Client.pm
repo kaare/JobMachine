@@ -25,7 +25,7 @@ sub uncheck {
 	$id ||= $self->id;
 	delete $self->{subscribed};
 	$self->db->unlisten(queue => $id, reply => 1);
-	return $self->db->get_notification;
+	return 1;
 }
 
 sub receive {
@@ -61,7 +61,7 @@ Job::Machine::Client - Class for Job Clients
 
 =head2 uncheck
 
- Check for reply. 
+ Stop check for reply. 
  
  Parameter: The message id.
 

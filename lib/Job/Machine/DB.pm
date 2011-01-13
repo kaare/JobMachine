@@ -326,6 +326,7 @@ sub select_all {
 	while( my $r = $sth->fetchrow_hashref) {
 			push(@result,$r);
 	}
+	$sth->finish();
 	return ( \@result );
 }
 
@@ -346,8 +347,9 @@ sub do {
 
 	$self->{last_sth} = $sth;
 	$sth->execute(@{$args{data}});
-	return $sth->rows;
-
+	my $rows = $sth->rows;
+	$sth->finish();
+	return $rows;
 }
 
 sub insert {
@@ -356,7 +358,9 @@ sub insert {
 
 	$self->{last_sth} = $sth;
 	$sth->execute(@{$args{data}});
-	return $sth->fetch()->[0];
+	my $retval = $sth->fetch()->[0];
+	$sth->finish();
+	return $retval;
 }
 
 sub update {

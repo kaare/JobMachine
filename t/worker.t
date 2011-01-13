@@ -29,14 +29,14 @@ sub startup {
 	my $id2;
 	ok(my $client2 = Job::Machine::Client->new(%config),'Another client');
 	ok($id2 = $client2->send({data => $self->data}),'Send another task');
-	ok($client2->uncheck($id2),'Uncheck first message');
+	ok($client2->uncheck($id2),'Uncheck send message');
 }
 
 sub process {
 	my ($self, $task) = @_;
 	is_deeply($task->{data}->{data}, $self->data,'- Did we get what we sent?');
 	my $client = $self->{client};
-	is(my $res = $client->check($id),undef,'Check for no message');
+	is(my $res = $client->check($id),undef,'Check for no message') if $task->{name} eq 'qyouw';
 	my $reply = "You've got nail";
 	ok($self->reply({data => $reply}), 'Talking to ourself');
 	ok($res = $client->receive($id),'- But do we listen?');
@@ -69,7 +69,7 @@ sub cleanup : Test(shutdown) {
 	qx{$command};
 };
 
-sub _worker : Test(11) {
+sub _worker : Test(19) {
 	my $self = shift;
 	return if $self->{skip};
 
