@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+ - Add multiqueue support for workers. This means that a worker can now listen
+   to many queues.
  - Clean up DB handling
  - Full DBI commit now supported
 

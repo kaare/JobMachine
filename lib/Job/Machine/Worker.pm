@@ -41,7 +41,7 @@ sub receive {
 sub _check_queue {
 	my $self = shift;
 	my $db = $self->{db};
-	while (my $task = $self->db->fetch_work_task($self->{queue})) {
+	while (my $task = $self->db->fetch_work_task) {
 		## log process call
 		$self->process($task);
 	}
@@ -101,6 +101,7 @@ Job::Machine::Worker - Base class for Job Workers
 
   sub process {
 	  my ($self, $task) = @_;
+	  $queuename = $task->{name};
 	  ... do stuff
   };
 
