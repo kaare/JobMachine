@@ -48,6 +48,7 @@ Job::Machine::Client - Class for Job Clients
 
   Parameters
   data - data to pass to the worker process
+  queue - optional queue name. Not needed if already set in new
 
  Returns the message id.
 
