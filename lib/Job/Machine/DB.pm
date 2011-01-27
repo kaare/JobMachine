@@ -345,7 +345,6 @@ sub do {
 	my ($self, %args) = @_;
 	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
 
-	$self->{last_sth} = $sth;
 	$sth->execute(@{$args{data}});
 	my $rows = $sth->rows;
 	$sth->finish();
@@ -356,7 +355,6 @@ sub insert {
 	my ($self, %args) = @_;
 	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
 
-	$self->{last_sth} = $sth;
 	$sth->execute(@{$args{data}});
 	my $retval = $sth->fetch()->[0];
 	$sth->finish();
