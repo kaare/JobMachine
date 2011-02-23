@@ -23,6 +23,12 @@ sub result {
 	$self->db->set_task_status(200);
 }
 
+sub error_result {
+	my ($self,$data,$queue) = @_;
+	$queue ||= $self->{queue};
+	$self->db->insert_result($data,$queue);
+}
+
 sub receive {
 	my $self = shift;
 	$self->startup;
@@ -173,11 +179,23 @@ Worker will wait for next message if this method returns true.
 
 =head3 result
 
-  $worker->result($result_data);
+	Use from within a Worker's process method.
 
-  Save the result of the task. Use from within a Worker's process method.
+	$worker->result($result_data);
 
-  Marks the task as done,
+	Save the result of the task.
+
+	Marks the task as done,
+
+=head3 error_result
+
+	Use from within a Worker's process method.
+
+	$worker->error_result($result_data);
+
+	Save the result of the task.
+
+	Does NOT change the job status,
 
 =head3 db
 
