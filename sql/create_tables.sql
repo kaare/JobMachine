@@ -57,3 +57,22 @@ COMMENT ON COLUMN result.task_id IS 'Task of the result';
 COMMENT ON COLUMN result.result IS 'Result of the job';
 COMMENT ON COLUMN result.resulttype IS 'Type of result; xml, html, etc';
 COMMENT ON COLUMN result.created IS 'Timestamp for row creation';
+
+-- Views
+
+CREATE OR REPLACE VIEW fulltask AS 
+	SELECT
+		task.task_id,task.status,task.parameters,
+		class.name,
+		result.result_id,result.result
+	FROM
+		task
+	JOIN
+		class
+	USING
+		(class_id)
+	LEFT JOIN
+		result
+	USING
+		(task_id)
+;
