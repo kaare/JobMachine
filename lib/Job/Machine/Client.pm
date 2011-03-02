@@ -40,6 +40,11 @@ __END__
 
 Job::Machine::Client - Class for Job Clients
 
+=head1 SYNOPSIS
+
+  my $client = Job::Machine::Client->new(dbh => $dbh, queue => 'job.task');
+  my $id = $client->send({foo => 'bar'});
+
 =head1 METHODS
 
 =head2 send

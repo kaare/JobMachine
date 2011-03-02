@@ -99,9 +99,16 @@ Job::Machine::Worker - Base class for Job Workers
 
 =head1 DESCRIPTION
 
-  Inherits from Job::Machine::Base.
-  
-  All you have to do to write a worker for a particular Job Class is
+=head2 Write a script to instantiate your class and start the receive loop:
+
+  my $worker = My::Worker->new(dbh => $dbh, queue => 'job.task');
+  $worker->receive;
+
+=head2 Write the Worker Class
+
+  Job::Machine::Worker inherits from Job::Machine::Base. All you have to do is
+
+  package My::Worker;
   
   use base 'Job::Machine::Worker';
 

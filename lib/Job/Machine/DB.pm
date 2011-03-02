@@ -75,6 +75,7 @@ sub fetch_work_task {
 	my ($self,$pid) = @_;
 	my $queue = ref $self->{queue} ? $self->{queue} : [$self->{queue}];
 	$self->{current_table} = 'task';
+	my $elems = join(',', ('?') x @$queue);
 	my $sql = qq{
 		UPDATE
 			"$self->{schema}".$self->{current_table} t
@@ -98,9 +99,7 @@ sub fetch_work_task {
 				WHERE
 					t.status=0
 				AND
-					c.name IN (}.
-		join(',', ('?') x @$queue)
-		.qq{)
+					c.name IN ($elems)
 				AND
 					t.run_after IS NULL
 				OR

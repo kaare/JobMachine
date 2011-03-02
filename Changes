@@ -3,6 +3,7 @@ Revision history for Job-Machine
 {{$NEXT}}
  - Add new worker method, error_result to save the result of a failing task.
  - Add new fulltask view, combining task, class and result tables
+ - Documentation enhancements
 
 0.16    2011-01-14 10:06:46 Europe/Copenhagen
  - Add multiqueue support for workers. This means that a worker can now listen
