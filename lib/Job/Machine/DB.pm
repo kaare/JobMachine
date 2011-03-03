@@ -45,10 +45,14 @@ sub unlisten {
 sub notify {
 	my ($self, %args) = @_;
 	my $queue = $args{queue} || return undef;
-
+	my $payload = $args{payload};
 	my $prefix = $args{reply} ?  RESPONSE_PREFIX :  QUEUE_PREFIX;
 	$queue = $prefix . $queue;
-	$self->{dbh}->do(qq{notify "$queue";});
+	my $sql = qq{SELECT pg_notify(?,?)};
+	my $task = $self->select_first(
+		sql => $sql,
+		data => [ $queue, $payload],
+	);
 }
 
 sub get_notification {
@@ -213,7 +217,24 @@ sub fetch_result {
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
 	return decode_json($result->{result})->{data};
+}
 
+sub fetch_results {
+	my ($self,$id) = @_;
+	$self->{current_table} = 'result';
+	my $sql = qq{
+		SELECT
+			*
+		FROM
+			"$self->{schema}".$self->{current_table}
+		WHERE
+			task_id=?
+		ORDER BY
+			result_id DESC
+	};
+	my $results = $self->select(sql => $sql,data => [$id]) || return;
+
+	return [map { decode_json($_->{result}) } @{ $results } ];
 }
 
 # 1. Find started tasks that have passed the time limit, most probably because 

@@ -154,7 +154,7 @@ is only used when reviving tasks that are suspected to be dead.
 =head3 timeout
 
 If the default of 5 minutes isn't suitable, return the number of seconds the
-worker should wait for inout before doing housekeeping chores.
+worker should wait for notifications before doing housekeeping chores.
 
 If you don't want the worker to perform any housekeeping tasks, return undef
 

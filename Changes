@@ -1,6 +1,7 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+ - Use pg_notify instead of NOTIFY for safer handling
  - Add new worker method, error_result to save the result of a failing task.
  - Add new fulltask view, combining task, class and result tables
  - Documentation enhancements
