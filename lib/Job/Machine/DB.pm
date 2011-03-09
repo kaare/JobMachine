@@ -232,7 +232,7 @@ sub fetch_results {
 		ORDER BY
 			result_id DESC
 	};
-	my $results = $self->select(sql => $sql,data => [$id]) || return;
+	my $results = $self->select_all(sql => $sql,data => [$id]) || return;
 
 	return [map { decode_json($_->{result}) } @{ $results } ];
 }
