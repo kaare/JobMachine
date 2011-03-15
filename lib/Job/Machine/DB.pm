@@ -121,7 +121,8 @@ sub fetch_work_task {
 	) || return;
 
 	$self->{task_id} = $task->{task_id};
-	$task->{data} = decode_json( delete $task->{parameters} );
+	$self->{json} ||= JSON::XS->new;
+	$task->{data} = $self->{json}->decode( delete $task->{parameters} );
 	return $task;
 }
 
@@ -129,7 +130,8 @@ sub insert_task {
 	my ($self,$data,$queue) = @_;
 	my $class = $self->fetch_class($queue);
 	$self->{current_table} = 'task';
-	my $frozen = encode_json($data);
+	$self->{json} ||= JSON::XS->new;
+	my $frozen = $self->{json}->encode($data);
 	my $sql = qq{
 		INSERT INTO
 			"$self->{schema}".$self->{current_table}
@@ -188,7 +190,8 @@ sub insert_class {
 sub insert_result {
 	my ($self,$data,$queue) = @_;
 	$self->{current_table} = 'result';
-	my $frozen = encode_json($data);
+	$self->{json} ||= JSON::XS->new;
+	my $frozen = $self->{json}->encode($data);
 	my $sql = qq{
 		INSERT INTO
 			"$self->{schema}".$self->{current_table}
@@ -216,7 +219,8 @@ sub fetch_result {
 	};
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
-	return decode_json($result->{result})->{data};
+	$self->{json} ||= JSON::XS->new;
+	return $self->{json}->decode($result->{result})->{data};
 }
 
 sub fetch_results {
@@ -234,7 +238,8 @@ sub fetch_results {
 	};
 	my $results = $self->select_all(sql => $sql,data => [$id]) || return;
 
-	return [map { decode_json($_->{result}) } @{ $results } ];
+	$self->{json} ||= JSON::XS->new;
+	return [map { $self->{json}->decode($_->{result}) } @{ $results } ];
 }
 
 # 1. Find started tasks that have passed the time limit, most probably because 
