@@ -1,7 +1,7 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
- - Significant update to examples/test.pl (Mark Stosberg)
+ - Significant update to examples/test.pl and better documentation(Mark Stosberg)
  - En/decode in a more secure way
 
 0.17    2011-03-04 08:04:30 Europe/Copenhagen
