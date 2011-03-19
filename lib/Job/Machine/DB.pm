@@ -433,6 +433,41 @@ Job::Machine::DB - Database class for Job::Machine
 
 =head2 set_listen
 
-Sets up the listener
+ $self->listen( queue => 'queue_name' );
+ $self->listen( queue => \@queues, reply => 1  );
+
+Sets up the listener.  Quit listening to the named queues. If 'reply' is
+passed, we unlisten to the related reply queue instead of the task queue.
+
+Return undef immediately if no queue is provided.
+
+=head2 unlisten
+
+ $self->unlisten( queue => 'queue_name' );
+ $self->unlisten( queue => \@queues, reply => 1  );
+
+Quit listening to the named queues. If 'reply' is passed, we unlisten
+to the related reply queue instead of the task queue.
+
+Return undef immediately if no queue is provided.
+
+=head2 notify
+
+ $self->notify( queue => 'queue_name' );
+ $self->notify( queue => 'queue_name', reply => 1, payload => $data  );
+
+Sends an asynchronous notification to the named queue, with an optional
+payload. If 'reply' is true, then the queue names are taken to be reply.
+
+Return undef immediately if no queue name is provided.
+
+=head2 get_notification
+
+ my $notifies = $self->get_notification();
+
+Retrievies the pending notifications. The return value is an arrayref where
+each row looks like this:
+
+ my ($name, $pid, $payload) = @$notify;
 
 =cut
