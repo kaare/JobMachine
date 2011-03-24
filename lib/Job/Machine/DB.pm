@@ -323,7 +323,7 @@ sub remove_tasks {
 
 sub select_first {
 	my ($self, %args) = @_;
-	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+	my $sth = $self->dbh->prepare($args{sql}) || return 0;
 
 	unless($sth->execute(@{$args{data}})) {
 		my @c = caller;
@@ -338,7 +338,7 @@ sub select_first {
 
 sub select_all {
 	my ($self, %args) = @_;
-	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+	my $sth = $self->dbh->prepare($args{sql}) || return 0;
 
 	$self->set_bind_type($sth,$args{data});
 	unless($sth->execute(@{$args{data}})) {
@@ -368,7 +368,7 @@ sub set_bind_type {
 
 sub do {
 	my ($self, %args) = @_;
-	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+	my $sth = $self->dbh->prepare($args{sql}) || return 0;
 
 	$sth->execute(@{$args{data}});
 	my $rows = $sth->rows;
@@ -378,7 +378,7 @@ sub do {
 
 sub insert {
 	my ($self, %args) = @_;
-	my $sth = defined $args{sth} ? $args{sth} : $self->dbh->prepare($args{sql}) || return 0;
+	my $sth = $self->dbh->prepare($args{sql}) || return 0;
 
 	$sth->execute(@{$args{data}});
 	my $retval = $sth->fetch()->[0];
