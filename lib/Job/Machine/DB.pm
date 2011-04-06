@@ -122,7 +122,11 @@ sub fetch_work_task {
 
 	$self->{task_id} = $task->{task_id};
 	$self->{json} ||= JSON::XS->new;
-	$task->{data} = $self->{json}->decode( delete $task->{parameters} );
+	my $parameters = delete $task->{parameters};
+	eval {
+		$task->{data} = JSON::XS->new->utf8(!utf8::is_utf8($parameters))->decode($parameters);
+	};
+	warn $@ if $@;
 	return $task;
 }
 
