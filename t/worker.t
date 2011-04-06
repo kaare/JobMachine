@@ -23,6 +23,9 @@ sub startup {
 	my ($self) = @_;
 	my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw');
 	ok(my $client = Job::Machine::Client->new(%config),'New client');
+	my $version = $client->db->dbh->{pg_server_version};
+	return if $version < 90000;
+
 	$self->{client} = $client;
 	ok($id = $client->send({data => $self->data}),'Send a task');
 	$config{queue} = 'q';
