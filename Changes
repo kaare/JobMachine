@@ -1,9 +1,11 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+ - Using pg_notify means we need at least PostgreSQL 9.0
  - Significant update to examples/test.pl and better documentation(Mark Stosberg)
  - En/decode in a more secure way
- - Check for version number in test. Using pg_notify means we need PostgreSQL >= 9.0
+ - Try to detect utf8 errors (thanks, Casper Warming)
+ - Skip tests if version number < 9.0
 
 0.17    2011-03-04 08:04:30 Europe/Copenhagen
  - Use pg_notify instead of NOTIFY for safer handling

@@ -16,10 +16,18 @@ The Schema of Job::Machine is in sql/create_tables.sql. Just install it into you
 database. It is environmental friendly (will not pollute your namespace). By default
 it installs in a new jobmachine schema (PostgreSQL schema, not e,g, DBIC schema).
 
-The Client:
+=head2 NB!
+
+Starting wirh version 0.18, Job::Machine needs at least PostgreSQL 9.0.
+
+Using pg_notify means we need PostgreSQL >= 9.0
+
+=head2 The Client
 
   my $client = Job::Machine::Client->new(queue => 'job.task');
   my $id = $client->send({foo => 'bar'});
+
+=head2 The Worker
 
 The Worker is a subclass
 

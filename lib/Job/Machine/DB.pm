@@ -122,11 +122,7 @@ sub fetch_work_task {
 
 	$self->{task_id} = $task->{task_id};
 	$self->{json} ||= JSON::XS->new;
-	my $parameters = delete $task->{parameters};
-	eval {
-		$task->{data} = JSON::XS->new->utf8(!utf8::is_utf8($parameters))->decode($parameters);
-	};
-	warn $@ if $@;
+	$task->{data} = $self->_decode(delete $task->{parameters});
 	return $task;
 }
 
@@ -224,7 +220,7 @@ sub fetch_result {
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
 	$self->{json} ||= JSON::XS->new;
-	return $self->{json}->decode($result->{result})->{data};
+	return $self->_decode($result->{result})->{data};
 }
 
 sub fetch_results {
@@ -243,7 +239,20 @@ sub fetch_results {
 	my $results = $self->select_all(sql => $sql,data => [$id]) || return;
 
 	$self->{json} ||= JSON::XS->new;
-	return [map { $self->{json}->decode($_->{result}) } @{ $results } ];
+	return [map { $self->_decode($_->{result}) } @{ $results } ];
+}
+
+sub _decode {
+	my ($self,$data) = @_;
+	my $resultdata;
+	eval {
+		$resultdata = JSON::XS->new->utf8(!utf8::is_utf8($resultdata))->decode($resultdata);
+	};
+	 if ($@) {
+		warn $@;
+		return;
+	}
+	return $resultdata;
 }
 
 # 1. Find started tasks that have passed the time limit, most probably because 
@@ -344,7 +353,7 @@ sub select_all {
 	my ($self, %args) = @_;
 	my $sth = $self->dbh->prepare($args{sql}) || return 0;
 
-	$self->set_bind_type($sth,$args{data});
+	$self->set_bind_type($sth,$args{data} || []);
 	unless($sth->execute(@{$args{data}})) {
 		my @c = caller;
 		print STDERR "File: $c[1] line $c[2]\n";
