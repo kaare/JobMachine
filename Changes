@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+ - Allow scalars in data (experimental)
+ - Use JSON instead of JSON::XS. Less typing...
  - Using pg_notify means we need at least PostgreSQL 9.0
  - Significant update to examples/test.pl and better documentation(Mark Stosberg)
  - En/decode in a more secure way

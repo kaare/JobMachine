@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp qw/croak confess/;
 use DBI;
-use JSON::XS;
+use JSON;
 
 use constant QUEUE_PREFIX    => 'jm:';
 use constant RESPONSE_PREFIX => 'jmr:';
@@ -20,6 +20,11 @@ sub new {
 	$args{dbh}      ||= DBI->connect($args{dsn},$args{user},$args{password},$args{db_attr});
 	$args{schema}   ||= 'jobmachine';
 	return bless \%args, $class;
+}
+
+sub json {
+	my ($self) = @_;
+	return $self->{json} ||= JSON->new->allow_nonref;
 }
 
 sub listen {
@@ -121,7 +126,6 @@ sub fetch_work_task {
 	) || return;
 
 	$self->{task_id} = $task->{task_id};
-	$self->{json} ||= JSON::XS->new;
 	$task->{data} = $self->_decode(delete $task->{parameters});
 	return $task;
 }
@@ -130,8 +134,7 @@ sub insert_task {
 	my ($self,$data,$queue) = @_;
 	my $class = $self->fetch_class($queue);
 	$self->{current_table} = 'task';
-	$self->{json} ||= JSON::XS->new;
-	my $frozen = $self->{json}->encode($data);
+	my $frozen = $self->json->encode($data);
 	my $sql = qq{
 		INSERT INTO
 			"$self->{schema}".$self->{current_table}
@@ -190,8 +193,7 @@ sub insert_class {
 sub insert_result {
 	my ($self,$data,$queue) = @_;
 	$self->{current_table} = 'result';
-	$self->{json} ||= JSON::XS->new;
-	my $frozen = $self->{json}->encode($data);
+	my $frozen = $self->json->encode($data);
 	my $sql = qq{
 		INSERT INTO
 			"$self->{schema}".$self->{current_table}
@@ -219,7 +221,6 @@ sub fetch_result {
 	};
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
-	$self->{json} ||= JSON::XS->new;
 	return $self->_decode($result->{result})->{data};
 }
 
@@ -238,7 +239,6 @@ sub fetch_results {
 	};
 	my $results = $self->select_all(sql => $sql,data => [$id]) || return;
 
-	$self->{json} ||= JSON::XS->new;
 	return [map { $self->_decode($_->{result}) } @{ $results } ];
 }
 
@@ -246,7 +246,7 @@ sub _decode {
 	my ($self,$data) = @_;
 	my $resultdata;
 	eval {
-		$resultdata = JSON::XS->new->utf8(!utf8::is_utf8($resultdata))->decode($resultdata);
+		$resultdata = $self->json->utf8(!utf8::is_utf8($resultdata))->decode($data);
 	};
 	 if ($@) {
 		warn $@;
