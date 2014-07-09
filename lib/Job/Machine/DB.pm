@@ -14,6 +14,7 @@ sub new {
 	croak "No connect information" unless $args{dbh} or $args{dsn};
 	croak "invalid queue" if ref $args{queue} and ref $args{queue} ne 'ARRAY';
 
+	$args{dbh_inherited} = 1 if $args{dbh};
 	$args{user}     ||= undef;
 	$args{password} ||= undef;
 	$args{db_attr}  ||= undef;
@@ -366,7 +367,8 @@ sub disconnect {
 }
 
 sub DESTROY {
-	$_[0]->disconnect();
+	my $self = shift;
+	$self->disconnect() unless $self->{dbh_inherited};
 	return;
 }
 
