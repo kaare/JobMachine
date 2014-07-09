@@ -86,38 +86,22 @@ sub fetch_work_task {
 	$self->{current_table} = 'task';
 	my $elems = join(',', ('?') x @$queue);
 	my $sql = qq{
-		UPDATE
-			"$self->{schema}".$self->{current_table} t
-		SET
-			status=100,
+		UPDATE "$self->{schema}".$self->{current_table} t
+		SET status=100,
 			modified=default
-		FROM
-			"jobmachine".class cx
-		WHERE
-			t.class_id = cx.class_id
-		AND
-			task_id = (
-				SELECT
-					min(task_id)
-				FROM
-					"$self->{schema}".$self->{current_table} t
-				JOIN
-					"jobmachine".class c
-				USING
-					(class_id)
-				WHERE
-					t.status=0
-				AND
-					c.name IN ($elems)
-				AND
-					t.run_after IS NULL
-				OR
-					t.run_after > now()
-			)
-		AND
-			t.status=0
-		RETURNING
-			*
+		FROM "jobmachine".class cx
+		WHERE t.class_id = cx.class_id
+		AND task_id = (
+			SELECT min(task_id)
+			FROM "$self->{schema}".$self->{current_table} t
+			JOIN "jobmachine".class c USING (class_id)
+			WHERE t.status=0
+			AND c.name IN ($elems)
+			AND (t.run_after IS NULL
+			OR t.run_after > now())
+		)
+		AND t.status=0
+		RETURNING *
 		;
 	};
 	my $task = $self->select_first(
@@ -136,13 +120,10 @@ sub insert_task {
 	$self->{current_table} = 'task';
 	my $frozen = $self->json->encode($data);
 	my $sql = qq{
-		INSERT INTO
-			"$self->{schema}".$self->{current_table}
+		INSERT INTO "$self->{schema}".$self->{current_table}
 			(class_id,parameters,status)
-		VALUES
-			(?,?,?)
-		RETURNING
-			task_id
+		VALUES (?,?,?)
+		RETURNING task_id
 	};
 	$self->insert(sql => $sql,data => [$class->{class_id},$frozen,0]);
 }
@@ -152,12 +133,9 @@ sub set_task_status {
 	my $id = $self->task_id;
 	$self->{current_table} = 'task';
 	my $sql = qq{
-		UPDATE
-			"$self->{schema}".$self->{current_table}
-		SET
-			status=?
-		WHERE 
-			task_id=?
+		UPDATE "$self->{schema}".$self->{current_table}
+		SET status=?
+		WHERE task_id=?
 	};
 	$self->update(sql => $sql,data => [$status,$id]);
 }
@@ -166,12 +144,9 @@ sub fetch_class {
 	my ($self,$queue) = @_;
 	$self->{current_table} = 'class';
 	my $sql = qq{
-		SELECT
-			*
-		FROM
-			"$self->{schema}".$self->{current_table}
-		WHERE
-			name=?
+		SELECT *
+		FROM "$self->{schema}".$self->{current_table}
+		WHERE name=?
 	};
 	return $self->select_first(sql => $sql,data => [$queue]) || $self->insert_class($queue);
 }
@@ -179,13 +154,10 @@ sub fetch_class {
 sub insert_class {
 	my ($self,$queue) = @_;
 	my $sql = qq{
-		INSERT INTO
-			"$self->{schema}".$self->{current_table}
+		INSERT INTO "$self->{schema}".$self->{current_table}
 			(name)
-		VALUES
-			(?)
-		RETURNING
-			class_id
+		VALUES (?)
+		RETURNING class_id
 	};
 	$self->select_first(sql => $sql,data => [$queue]);
 }
@@ -195,13 +167,10 @@ sub insert_result {
 	$self->{current_table} = 'result';
 	my $frozen = $self->json->encode($data);
 	my $sql = qq{
-		INSERT INTO
-			"$self->{schema}".$self->{current_table}
+		INSERT INTO "$self->{schema}".$self->{current_table}
 			(task_id,result)
-		VALUES
-			(?,?)
-		RETURNING
-			result_id
+		VALUES (?,?)
+		RETURNING result_id
 	};
 	$self->insert(sql => $sql,data => [$self->{task_id},$frozen]);
 }
@@ -210,14 +179,10 @@ sub fetch_result {
 	my ($self,$id) = @_;
 	$self->{current_table} = 'result';
 	my $sql = qq{
-		SELECT
-			*
-		FROM
-			"$self->{schema}".$self->{current_table}
-		WHERE
-			task_id=?
-		ORDER BY
-			result_id DESC
+		SELECT *
+		FROM "$self->{schema}".$self->{current_table}
+		WHERE task_id=?
+		ORDER BY result_id DESC
 	};
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
@@ -228,14 +193,10 @@ sub fetch_results {
 	my ($self,$id) = @_;
 	$self->{current_table} = 'result';
 	my $sql = qq{
-		SELECT
-			*
-		FROM
-			"$self->{schema}".$self->{current_table}
-		WHERE
-			task_id=?
-		ORDER BY
-			result_id DESC
+		SELECT *
+		FROM "$self->{schema}".$self->{current_table}
+		WHERE task_id=?
+		ORDER BY result_id DESC
 	};
 	my $results = $self->select_all(sql => $sql,data => [$id]) || return;
 
@@ -264,14 +225,10 @@ sub revive_tasks {
 	$self->{current_table} = 'task';
 	my $status = 100;
 	my $sql = qq{
-		UPDATE
-			"$self->{schema}".$self->{current_table}
-		SET
-			status=0
-		WHERE
-			status=?
-		AND
-			modified < now() - INTERVAL '$max seconds'
+		UPDATE "$self->{schema}".$self->{current_table}
+		SET status=0
+		WHERE status=?
+		AND modified < now() - INTERVAL '$max seconds'
 	};
 	my $result = $self->do(sql => $sql,data => [$status]);
 	return $result;
@@ -287,14 +244,10 @@ sub fail_tasks {
 	$self->{current_table} = 'result';
 	my $limit = 100;
 	my $sql = qq{
-		SELECT
-			task_id
-		FROM
-			"$self->{schema}".$self->{current_table}
-		GROUP BY
-			task_id
-		HAVING
-			count(*)>?
+		SELECT task_id
+		FROM "$self->{schema}".$self->{current_table}
+		GROUP BY task_id
+		HAVING count(*)>?
 		LIMIT ?
 	};
 	my $result = $self->select_all(sql => $sql,data => [$retries,$limit]) || return 0;
@@ -304,12 +257,9 @@ sub fail_tasks {
 	$self->{current_table} = 'task';
 	my $status = 900;
 	$sql = qq{
-		UPDATE
-			"$self->{schema}".$self->{current_table}
-		SET
-			status=?
-		WHERE
-			task_id IN ($task_ids)
+		UPDATE "$self->{schema}".$self->{current_table}
+		SET status=?
+		WHERE task_id IN ($task_ids)
 	};
 	$self->do(sql => $sql,data => [$status]);
 	return scalar @$result;
@@ -325,10 +275,8 @@ sub remove_tasks {
 	$self->{current_table} = 'task';
 	my $limit = 100;
 	my $sql = qq{
-		DELETE FROM
-			"$self->{schema}".$self->{current_table}
-		WHERE
-			modified < now() - INTERVAL '$after days'
+		DELETE FROM "$self->{schema}".$self->{current_table}
+		WHERE modified < now() - INTERVAL '$after days'
 	};
 	my $result = $self->do(sql => $sql,data => []);
 	return $result;
