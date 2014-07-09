@@ -238,7 +238,7 @@ Kaare Rasmussen <kaare@cpan.org>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2009-2010, Kaare Rasmussen
+Copyright (C) 2009,2014, Kaare Rasmussen
 
 This module is free software; you can redistribute it or modify it
 under the same terms as Perl itself.
