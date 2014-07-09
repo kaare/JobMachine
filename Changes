@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+ - Require DBD::Pg >= 3.0.0. Solves a nasty utf-8 bug.
+ - Small but nasty bug in the UPDATE statement fetching the next job
 
 0.18    2011-06-21 08:51:04 Europe/Copenhagen
  - Allow scalars in data (experimental)
