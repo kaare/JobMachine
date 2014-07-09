@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+
+0.19    2014-07-09 13:38:13 Europe/Copenhagen
  - Require DBD::Pg >= 3.0.0. Solves a nasty utf-8 bug.
  - Small but nasty bug in the UPDATE statement fetching the next job
 
