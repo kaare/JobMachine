@@ -1,9 +1,3 @@
-package Job::Machine;
-
-1;
-__END__
-=pod
-
 =head1 NAME
 
 Job::Machine - Job queue handling
@@ -18,7 +12,7 @@ it installs in a new jobmachine schema (PostgreSQL schema, not e,g, DBIC schema)
 
 =head2 NB!
 
-Starting wirh version 0.18, Job::Machine needs at least PostgreSQL 9.0.
+Starting with version 0.18, Job::Machine needs at least PostgreSQL 9.0.
 
 Using pg_notify means we need PostgreSQL >= 9.0
 
@@ -48,6 +42,15 @@ Back at the Client:
   if ($client->check('reply')) {
       print $client->receive->{baz};
   }
+
+=head2 Moose
+
+Job::Machine doesn't use Moose itself, so this is the way to subclass it in a Moose environment:
+
+  use MooseX::NonMoose;
+  extends 'Job::Machine::Worker';
+
+This makes sure that Moose doesn't step on the precious new method.
 
 =head1 DESCRIPTION
 
