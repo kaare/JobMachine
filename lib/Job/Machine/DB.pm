@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp qw/croak confess/;
 use DBI;
-use JSON;
+use Data::Serializer;
 
 use constant QUEUE_PREFIX    => 'jm:';
 use constant RESPONSE_PREFIX => 'jmr:';
@@ -23,9 +23,11 @@ sub new {
 	return bless \%args, $class;
 }
 
-sub json {
+sub serializer {
 	my ($self) = @_;
-	return $self->{json} ||= JSON->new->allow_nonref;
+	my $args = $self->{serializer_args} || {};
+	$args->{serializer} ||= $self->{serializer} // 'Sereal';
+	return $self->{serialize} ||= Data::Serializer->new(%$args);
 }
 
 sub listen {
@@ -111,7 +113,7 @@ sub fetch_work_task {
 	) || return;
 
 	$self->{task_id} = $task->{task_id};
-	$task->{data} = $self->_decode(delete $task->{parameters});
+	$task->{data} = $self->serializer->deserialize(delete $task->{parameters});
 	return $task;
 }
 
@@ -119,7 +121,7 @@ sub insert_task {
 	my ($self,$data,$queue) = @_;
 	my $class = $self->fetch_class($queue);
 	$self->{current_table} = 'task';
-	my $frozen = $self->json->encode($data);
+	my $frozen = $self->serializer->serialize($data);
 	my $sql = qq{
 		INSERT INTO "$self->{database_schema}".$self->{current_table}
 			(class_id,parameters,status)
@@ -166,7 +168,7 @@ sub insert_class {
 sub insert_result {
 	my ($self,$data,$queue) = @_;
 	$self->{current_table} = 'result';
-	my $frozen = $self->json->encode($data);
+	my $frozen = $self->serializer->serialize($data);
 	my $sql = qq{
 		INSERT INTO "$self->{database_schema}".$self->{current_table}
 			(task_id,result)
@@ -187,7 +189,7 @@ sub fetch_result {
 	};
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
-	return $self->_decode($result->{result})->{data};
+	return $self->serializer->deserialize($result->{result})->{data};
 }
 
 sub fetch_results {
@@ -201,20 +203,7 @@ sub fetch_results {
 	};
 	my $results = $self->select_all(sql => $sql,data => [$id]) || return;
 
-	return [map { $self->_decode($_->{result}) } @{ $results } ];
-}
-
-sub _decode {
-	my ($self,$data) = @_;
-	my $resultdata;
-	eval {
-		$resultdata = $self->json->utf8(!utf8::is_utf8($resultdata))->decode($data);
-	};
-	 if ($@) {
-		warn $@;
-		return;
-	}
-	return $resultdata;
+	return [map { $self->serializer->deserialize($_->{result}) } @{ $results } ];
 }
 
 # 1. Find started tasks that have passed the time limit, most probably because 

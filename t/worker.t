@@ -5,6 +5,7 @@ use warnings;
 use Test::More;
 
 use base 'Job::Machine::Worker';
+
 use Job::Machine::Client;
 
 our $id;
@@ -15,13 +16,14 @@ sub data  {
 		array   => [1,2,'three',],
 	};
 };
+
 sub timeout {5}
 
 sub keep_running {0}
 
 sub startup {
 	my ($self) = @_;
-	my %config = (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw');
+	my %config = main::config();
 	ok(my $client = Job::Machine::Client->new(%config),'New client');
 	my $version = $client->db->dbh->{pg_server_version};
 	return if $version < 90000;
@@ -67,21 +69,40 @@ sub startup : Test(startup => 2) {
 sub cleanup : Test(shutdown) {
 	my $self = shift;
 	return if $self->{skip};
+
 	$self->{dbh}->disconnect;
 	my $command = 'dropdb '.db_name;
 	qx{$command};
 };
 
-sub _worker : Test(19) {
+sub _worker : Test(98) {
 	my $self = shift;
 	return if $self->{skip};
 
-	my %config = (dsn => 'dbi:Pg:dbname='.db_name, queue => [qw/qyouw q/],);
-	ok(my $worker = Worker->new(%config),'New Worker');
-	isa_ok($worker,'Worker','Worker class');
-	is($worker->receive,undef,'receive loop');
+	for my $serializer (qw/
+		<default>
+		Config::General
+		Data::Dumper
+		JSON
+		Storable
+		XML::Simple
+		YAML
+	/) {
+		my %config = main::config();
+		$config{serializer} = $serializer unless $serializer eq '<default>';
+		ok(my $worker = Worker->new(%config),'New Worker');
+		isa_ok($worker,'Worker','Worker class');
+		is($worker->receive,undef,'receive loop');
+	}
 };
 
 package main;
+
+use strict;
+use warnings;
+
+sub config {
+	return (dsn => 'dbi:Pg:dbname=__jm::test__', queue => 'qyouw');
+}
 
 Test::Job::Machine->runtests;
