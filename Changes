@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+
+0.20    2015-03-22 06:03:49 Europe/Copenhagen
  - Use Data::Serializer -  and Data::Serializer::Sereal as default
  - Don't try to disconnect from a database that's been handed down
 
