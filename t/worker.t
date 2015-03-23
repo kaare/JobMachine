@@ -51,6 +51,8 @@ sub process {
 
 package Test::Job::Machine;
 
+use strict;
+use warnings;
 use base qw(Test::Class);
 use Test::More;
 
