@@ -26,7 +26,7 @@ sub new {
 sub serializer {
 	my ($self) = @_;
 	my $args = $self->{serializer_args} || {};
-	$args->{serializer} ||= $self->{serializer} // 'Sereal';
+	$args->{serializer} ||= $self->{serializer} || 'Sereal';
 	return $self->{serialize} ||= Data::Serializer->new(%$args);
 }
 
