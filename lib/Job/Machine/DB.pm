@@ -189,7 +189,7 @@ sub fetch_result {
 	};
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
-	return $self->serializer->deserialize($result->{result})->{data};
+	return $self->serializer->deserialize($result->{result});
 }
 
 sub fetch_results {
