@@ -45,7 +45,7 @@ sub process {
 	my $reply = "You've got nail";
 	ok($self->reply({data => $reply}), 'Talking to ourself');
 	ok($res = $client->receive($id),'- But do we listen?');
-	is($res, $reply,'- Did we hear what we said?');
+	is($res->{data}, $reply,'- Did we hear what we said?');
 	ok($client->uncheck($id),'Uncheck first message');
 };
 
