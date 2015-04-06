@@ -29,23 +29,23 @@ sub startup {
 	return if $version < 90000;
 
 	$self->{client} = $client;
-	ok($id = $client->send({data => $self->data}),'Send a task');
+	ok($id = $client->send($self->data),'Send a task');
 	$config{queue} = 'q';
 	my $id2;
 	ok(my $client2 = Job::Machine::Client->new(%config),'Another client');
-	ok($id2 = $client2->send({data => $self->data}),'Send another task');
+	ok($id2 = $client2->send($self->data),'Send another task');
 	ok($client2->uncheck($id2),'Uncheck send message');
 }
 
 sub process {
 	my ($self, $task) = @_;
-	is_deeply($task->{data}->{data}, $self->data,'- Did we get what we sent?');
+	is_deeply($task->{data}, $self->data,'- Did we get what we sent?');
 	my $client = $self->{client};
 	is(my $res = $client->check($id),undef,'Check for no message') if $task->{name} eq 'qyouw';
 	my $reply = "You've got nail";
-	ok($self->reply({data => $reply}), 'Talking to ourself');
+	ok($self->reply({foo => $reply}), 'Talking to ourself');
 	ok($res = $client->receive($id),'- But do we listen?');
-	is($res->{data}, $reply,'- Did we hear what we said?');
+	is($res->{foo}, $reply,'- Did we hear what we said?');
 	ok($client->uncheck($id),'Uncheck first message');
 };
 

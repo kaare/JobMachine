@@ -1,3 +1,11 @@
+package Job::Machine;
+
+use strict;
+
+1;
+
+__END__
+
 =head1 NAME
 
 Job::Machine
@@ -127,3 +135,4 @@ under the same terms as Perl itself.
 =cut
 
 # PODNAME: Job::Machine
+# ABSTRACT: Job queue handling using PostgreSQL.

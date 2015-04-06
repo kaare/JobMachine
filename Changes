@@ -3,6 +3,7 @@ Revision history for Job-Machine
 {{$NEXT}}
 
 0.21    2015-03-24 03:33:30 Europe/Copenhagen
+ - Fix a bug of expecting a specific name (domm)
 
 0.20    2015-03-22 06:03:49 Europe/Copenhagen
  - Use Data::Serializer -  and Data::Serializer::Sereal as default
