@@ -90,9 +90,18 @@ sub _worker : Test(98) {
 		XML::Simple
 		YAML
 	/) {
+		if ($serializer ne '<default>') {
+			my $class = "Data::Serializer::".$serializer;
+			eval "use $class";
+
+			if ($@) {
+				diag("$class not installed, skipping");
+				next;
+			}
+		}
 		my %config = main::config();
 		$config{serializer} = $serializer unless $serializer eq '<default>';
-		ok(my $worker = Worker->new(%config),'New Worker');
+		ok(my $worker = Worker->new(%config),'New Worker using '.$serializer);
 		isa_ok($worker,'Worker','Worker class');
 		is($worker->receive,undef,'receive loop');
 	}
