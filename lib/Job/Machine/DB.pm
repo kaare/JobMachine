@@ -9,6 +9,26 @@ use Data::Serializer;
 use constant QUEUE_PREFIX    => 'jm:';
 use constant RESPONSE_PREFIX => 'jmr:';
 
+=head1 NAME
+
+Job::Machine::DB - Database class for Job::Machine
+
+=head1 METHODS
+
+=head2 new
+
+  my $client = Job::Machine::DB->new(
+	  dbh   => $dbh,
+	  queue => 'queue.subqueue',
+
+  );
+
+  my $client = Job::Machine::Base->new(
+	  dsn   => @dsn,
+  );
+
+=cut
+
 sub new {
 	my ($class, %args) = @_;
 	croak "No connect information" unless $args{dbh} or $args{dsn};
@@ -23,12 +43,30 @@ sub new {
 	return bless \%args, $class;
 }
 
+=head2 serializer
+
+Returns the serializer, default Data::Serializer
+
+=cut
+
 sub serializer {
 	my ($self) = @_;
 	my $args = $self->{serializer_args} || {};
 	$args->{serializer} ||= $self->{serializer} || 'Sereal';
 	return $self->{serialize} ||= Data::Serializer->new(%$args);
 }
+
+=head2 listen
+
+Sets up the listener.  Quit listening to the named queues. If 'reply' is
+passed, we listen to the related reply queue instead of the task queue.
+
+Return undef immediately if no queue is provided.
+
+ $self->listen( queue => 'queue_name' );
+ $self->listen( queue => \@queues, reply => 1  );
+
+=cut
 
 sub listen {
 	my ($self, %args) = @_;
@@ -40,6 +78,18 @@ sub listen {
 	}
 }
 
+=head2 unlisten
+
+Quit listening to the named queues. If 'reply' is passed, we unlisten
+to the related reply queue instead of the task queue.
+
+Return undef immediately if no queue is provided.
+
+ $self->unlisten( queue => 'queue_name' );
+ $self->unlisten( queue => \@queues, reply => 1  );
+
+=cut
+
 sub unlisten {
 	my ($self, %args) = @_;
 	my $queue = $args{queue} || return undef;
@@ -49,6 +99,18 @@ sub unlisten {
 		$self->{dbh}->do(qq{unlisten "$prefix$q";});
 	}
 }
+
+=head2 notify
+
+Sends an asynchronous notification to the named queue, with an optional
+payload. If 'reply' is true, then the queue names are taken to be reply.
+
+Return undef immediately if no queue name is provided.
+
+ $self->notify( queue => 'queue_name' );
+ $self->notify( queue => 'queue_name', reply => 1, payload => $data  );
+
+=cut
 
 sub notify {
 	my ($self, %args) = @_;
@@ -63,12 +125,32 @@ sub notify {
 	);
 }
 
+=head2 get_notification
+
+Retrieve one notification, if there is one
+
+Retrievies the pending notifications.
+
+ my $notifies = $self->get_notification();
+
+The return value is an arrayref where each row looks like this:
+
+ my ($name, $pid, $payload) = @$notify;
+
+=cut
+
 sub get_notification {
 	my ($self,$timeout) = @_;
 	my $dbh = $self->dbh;
 	my $notifies = $dbh->func('pg_notifies');
 	return $notifies;
 }
+
+=head2 set_listen
+
+Wait for a notification. The required parameter timeout tells for how long time to wait.
+
+=cut
 
 sub set_listen {
 	my ($self,$timeout) = @_;
@@ -83,8 +165,14 @@ sub set_listen {
 	return $notifies || [0,0];
 }
 
+=head2 fetch_work_task
+
+Fetch one work task from the task table
+
+=cut
+
 sub fetch_work_task {
-	my ($self,$pid) = @_;
+	my $self = shift;
 	my $queue = ref $self->{queue} ? $self->{queue} : [$self->{queue}];
 	$self->{current_table} = 'task';
 	my $elems = join(',', ('?') x @$queue);
@@ -117,6 +205,12 @@ sub fetch_work_task {
 	return $task;
 }
 
+=head2 insert_task
+
+Insert a row in the task table
+
+=cut
+
 sub insert_task {
 	my ($self,$data,$queue) = @_;
 	my $class = $self->fetch_class($queue);
@@ -131,6 +225,12 @@ sub insert_task {
 	$self->insert(sql => $sql,data => [$class->{class_id},$frozen,0]);
 }
 
+=head2 set_task_status
+
+Update the task with a new status
+
+=cut
+
 sub set_task_status {
 	my ($self,$status) = @_;
 	my $id = $self->task_id;
@@ -143,6 +243,12 @@ sub set_task_status {
 	$self->update(sql => $sql,data => [$status,$id]);
 }
 
+=head2 fetch_class
+
+Fetch a class
+
+=cut
+
 sub fetch_class {
 	my ($self,$queue) = @_;
 	$self->{current_table} = 'class';
@@ -154,6 +260,34 @@ sub fetch_class {
 	return $self->select_first(sql => $sql,data => [$queue]) || $self->insert_class($queue);
 }
 
+=head2 fetch_task
+
+Fetch a task
+
+=cut
+
+sub fetch_task {
+	my ($self,$id) = @_;
+	$self->{current_table} = 'task';
+	my $sql = qq{
+		SELECT *
+		FROM "$self->{database_schema}".$self->{current_table}
+		JOIN "$self->{database_schema}".class USING (class_id)
+		WHERE task_id=?
+	};
+	my $task = $self->select_first(sql => $sql,data => [$id]) or return;
+
+	$task->{frozen} = $task->{parameters};
+	$task->{parameters} = $self->serializer->deserialize($task->{parameters});
+	return $task;
+}
+
+=head2 insert_class
+
+Insert a row in the class table
+
+=cut
+
 sub insert_class {
 	my ($self,$queue) = @_;
 	my $sql = qq{
@@ -164,6 +298,12 @@ sub insert_class {
 	};
 	$self->select_first(sql => $sql,data => [$queue]);
 }
+
+=head2 insert_result
+
+Insert a row in the result table
+
+=cut
 
 sub insert_result {
 	my ($self,$data,$queue) = @_;
@@ -177,6 +317,12 @@ sub insert_result {
 	};
 	$self->insert(sql => $sql,data => [$self->{task_id},$frozen]);
 }
+
+=head2 fetch_result
+
+Fetch a result
+
+=cut
 
 sub fetch_result {
 	my ($self,$id) = @_;
@@ -192,6 +338,12 @@ sub fetch_result {
 	return $self->serializer->deserialize($result->{result});
 }
 
+=head2 fetch_results
+
+Fetch all results of a given task
+
+=cut
+
 sub fetch_results {
 	my ($self,$id) = @_;
 	$self->{current_table} = 'result';
@@ -206,9 +358,69 @@ sub fetch_results {
 	return [map { $self->serializer->deserialize($_->{result}) } @{ $results } ];
 }
 
-# 1. Find started tasks that have passed the time limit, most probably because 
-# of a dead worker. (status 100, modified < now - max_runtime)
-# 2. Trim status so task can be tried again
+=head2 get_statuses
+
+Fetch all distinct statuses
+
+=cut
+
+sub get_statuses {
+	my ($self) = @_;
+	$self->{current_table} = 'task';
+	my $sql = qq{
+		SELECT status
+		FROM "$self->{database_schema}".$self->{current_table}
+		GROUP BY status
+	};
+	my $stats = $self->select_all(sql => $sql) || return;
+	return $stats;
+}
+
+=head2 get_classes
+
+Fetch all classes
+
+=cut
+
+sub get_classes {
+	my ($self) = @_;
+	$self->{current_table} = 'class';
+	my $sql = qq{
+		SELECT *
+		FROM "$self->{database_schema}".$self->{current_table}
+	};
+	my $stats = $self->select_all(sql => $sql) || return;
+	return $stats;
+}
+
+=head2 get_tasks
+
+Fetch all tasks, joined with the class for a suitable name
+
+=cut
+
+sub get_tasks {
+	my ($self,%args) = @_;
+	$self->{current_table} = 'task';
+	my ($where_clause, @where_args) = $self->where_clause($args{where});
+	my $order_by = $self->order_by($args{order_by});
+	my $sql = qq{
+		SELECT *
+		FROM "$self->{database_schema}".$self->{current_table} t
+		JOIN "$self->{database_schema}".class c USING (class_id)
+		$where_clause
+		$order_by
+	};
+	my $tasks = $self->select_all(sql => $sql,data => \@where_args) || return;
+	return $tasks;
+}
+
+=head2 revive_tasks
+
+	1. Find started tasks that have passed the time limit, most probably because of a dead worker. (status 100, modified < now - max_runtime)
+	2. Trim status so task can be tried again
+
+=cut
 
 sub revive_tasks {
 	my ($self,$max) = @_;
@@ -224,10 +436,14 @@ sub revive_tasks {
 	return $result;
 }
 
-# 1. Find tasks that have failed too many times (# of result rows > $self->retries
-# 2. fail them (Set status 900)
-# There's a hard limit (100) for how many tasks can be failed at one time for
-# performance resons
+=head2 fail_tasks
+
+	1. Find tasks that have failed too many times (# of result rows > $self->retries
+	2. fail them (Set status 900)
+	There's a hard limit (100) for how many tasks can be failed at one time for
+	performance resons
+
+=cut
 
 sub fail_tasks {
 	my ($self,$retries) = @_;
@@ -255,9 +471,14 @@ sub fail_tasks {
 	return scalar @$result;
 }
 
-# 3. Find tasks that should be removed (remove_task < now)
-# - delete them
-# - log
+=head2 remove_tasks
+
+	3. Find tasks that should be removed (remove_task < now)
+	- delete them
+	- log
+
+=cut
+
 sub remove_tasks {
 	my ($self,$after) = @_;
 	return 0 unless $after;
@@ -271,6 +492,12 @@ sub remove_tasks {
 	my $result = $self->do(sql => $sql,data => []);
 	return $result;
 }
+
+=head2 select_first
+
+Select the first row from the given sql statement
+
+=cut
 
 sub select_first {
 	my ($self, %args) = @_;
@@ -287,10 +514,15 @@ sub select_first {
 	return ( $r );
 }
 
+=head2 select_all
+
+Select all rows from the given sql statement
+
+=cut
+
 sub select_all {
 	my ($self, %args) = @_;
 	my $sth = $self->dbh->prepare($args{sql}) || return 0;
-
 	$self->set_bind_type($sth,$args{data} || []);
 	unless($sth->execute(@{$args{data}})) {
 		my @c = caller;
@@ -361,74 +593,41 @@ sub DESTROY {
 	return;
 }
 
+=head2 where_clause
+
+Very light weight where clause builder
+
+=cut
+
+sub where_clause {
+	my ($self, $where) = @_;
+	my $where_clause = join(' AND ', ("$_ = ?") x keys %$where);
+	$where_clause = "WHERE $where_clause" if $where_clause;
+	return $where_clause, values %$where;
+}
+
+=head2 order_by
+
+Very light weight order-by builder
+
+=cut
+
+sub order_by {
+	my ($self, $order) = @_;
+	my $order_by = join(',', ("$_") x keys @$order);
+	$order_by = "ORDER BY $order_by" if $order_by;
+	return $order_by;
+}
+
 1;
 __END__
-
-=head1 NAME
-
-Job::Machine::DB - Database class for Job::Machine
-
-=head1 METHODS
-
-=head2 new
-
-  my $client = Job::Machine::DB->new(
-	  dbh   => $dbh,
-	  queue => 'queue.subqueue',
-
-  );
-
-  my $client = Job::Machine::Base->new(
-	  dsn   => @dsn,
-  );
-
-
-=head2 set_listen
-
- $self->listen( queue => 'queue_name' );
- $self->listen( queue => \@queues, reply => 1  );
-
-Sets up the listener.  Quit listening to the named queues. If 'reply' is
-passed, we unlisten to the related reply queue instead of the task queue.
-
-Return undef immediately if no queue is provided.
-
-=head2 unlisten
-
- $self->unlisten( queue => 'queue_name' );
- $self->unlisten( queue => \@queues, reply => 1  );
-
-Quit listening to the named queues. If 'reply' is passed, we unlisten
-to the related reply queue instead of the task queue.
-
-Return undef immediately if no queue is provided.
-
-=head2 notify
-
- $self->notify( queue => 'queue_name' );
- $self->notify( queue => 'queue_name', reply => 1, payload => $data  );
-
-Sends an asynchronous notification to the named queue, with an optional
-payload. If 'reply' is true, then the queue names are taken to be reply.
-
-Return undef immediately if no queue name is provided.
-
-=head2 get_notification
-
- my $notifies = $self->get_notification();
-
-Retrievies the pending notifications. The return value is an arrayref where
-each row looks like this:
-
- my ($name, $pid, $payload) = @$notify;
-
 =head1 AUTHOR
 
 Kaare Rasmussen <kaare@cpan.org>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2009,2014, Kaare Rasmussen
+Copyright (C) 2009,2015, Kaare Rasmussen
 
 This module is free software; you can redistribute it or modify it
 under the same terms as Perl itself.
