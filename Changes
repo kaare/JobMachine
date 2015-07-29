@@ -2,6 +2,7 @@ Revision history for Job-Machine
 
 {{$NEXT}}
  - Add some methods for administration
+ - If the result is a hashref, look for the mime_type
 
 0.22    2015-04-06 20:25:08 Europe/Copenhagen
 
