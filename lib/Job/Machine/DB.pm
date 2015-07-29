@@ -303,24 +303,38 @@ sub insert_class {
 
 Insert a row in the result table
 
+Argument
+
+ data - either a scalar value that will be inserted as the result, or a hashref containing the type and result
+
 =cut
 
 sub insert_result {
-	my ($self,$data,$queue) = @_;
+	my ($self,$data) = @_;
 	$self->{current_table} = 'result';
-	my $frozen = $self->serializer->serialize($data);
+	my @columns = qw/task_id result/;
+	my @values = ($self->{task_id});
+	if (ref $data eq 'HASH') {
+		push @columns, 'resulttype';
+		my $type = delete $data->{type};
+		push @values, $self->serializer->serialize($data), $type;
+	} else {
+		push @values, $self->serializer->serialize($data);
+	}
+	my $columns = join ', ', @columns;
+	my $qs = join(',', ('?') x @columns);
 	my $sql = qq{
 		INSERT INTO "$self->{database_schema}".$self->{current_table}
-			(task_id,result)
-		VALUES (?,?)
+			($columns)
+		VALUES ($qs)
 		RETURNING result_id
 	};
-	$self->insert(sql => $sql,data => [$self->{task_id},$frozen]);
+	$self->insert(sql => $sql,data => \@values);
 }
 
 =head2 fetch_result
 
-Fetch a result
+Fetch a result using the result id
 
 =cut
 
@@ -330,12 +344,13 @@ sub fetch_result {
 	my $sql = qq{
 		SELECT *
 		FROM "$self->{database_schema}".$self->{current_table}
-		WHERE task_id=?
-		ORDER BY result_id DESC
+		WHERE result_id=?
 	};
 	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
 
-	return $self->serializer->deserialize($result->{result});
+	my $r = $self->serializer->deserialize($result->{result});
+	$result->{result} = $r;
+	return $result;
 }
 
 =head2 fetch_results
@@ -355,7 +370,7 @@ sub fetch_results {
 	};
 	my $results = $self->select_all(sql => $sql,data => [$id]) || return;
 
-	return [map { $self->serializer->deserialize($_->{result}) } @{ $results } ];
+	return [map { {id => $_->{result_id}, type => $_->{resulttype}, result => $self->serializer->deserialize($_->{result}) } } @{ $results } ];
 }
 
 =head2 get_statuses
