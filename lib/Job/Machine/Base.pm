@@ -26,7 +26,7 @@ sub subscribe {
 	return $self->db->listen(queue => $queue, reply => $reply);
 }
 
-sub log {
+sub job_log {
 	my ($self, $msg) = @_;
 	print STDERR $msg, "\n";
 	return;
@@ -75,7 +75,7 @@ to open a database.
 	timeout is how long to wait for notifications before doing a housekeeping loop.
 	Default is 5 minutes.
 
-=head2 log
+=head2 job_log
 
 Give it a text and it will log it.
 

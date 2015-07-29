@@ -48,7 +48,7 @@ sub _check_queue {
 	my $self = shift;
 	my $db = $self->{db};
 	while (my $task = $self->db->fetch_work_task) {
-		## log process call
+		## og process call
 		$self->process($task);
 	}
 }
@@ -60,17 +60,17 @@ sub _do_chores {
 		sub {
 			my $self = shift;
 			my $number = $db->revive_tasks($self->max_runtime) || 0;
-			$self->log("Revived tasks: $number");
+			$self->job_log("Revived tasks: $number");
 		},
 		sub {
 			my $self = shift;
 			my $number = $db->fail_tasks($self->retries) || 0;
-			$self->log("Failed tasks: $number");
+			$self->job_log("Failed tasks: $number");
 		},
 		sub {
 			my $self = shift;
 			my $number = $db->remove_tasks($self->remove_after) || 0;
-			$self->log("Removed tasks: $number");
+			$self->job_log("Removed tasks: $number");
 		},
 	);
 	my $chore = $chores[int(rand(@chores))];
