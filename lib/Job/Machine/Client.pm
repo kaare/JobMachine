@@ -31,7 +31,7 @@ sub uncheck {
 sub receive {
 	my ($self, $id) = @_;
 	$id ||= $self->id;
-	return $self->db->fetch_result($id);
+	return $self->db->fetch_first_result($id);
 };
 
 1;

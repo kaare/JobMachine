@@ -339,18 +339,38 @@ Fetch a result using the result id
 =cut
 
 sub fetch_result {
-	my ($self,$id) = @_;
+	my ($self,$result_id) = @_;
 	$self->{current_table} = 'result';
 	my $sql = qq{
 		SELECT *
 		FROM "$self->{database_schema}".$self->{current_table}
 		WHERE result_id=?
 	};
-	my $result = $self->select_first(sql => $sql,data => [$id]) || return;
+	my $result = $self->select_first(sql => $sql,data => [$result_id]) || return;
 
 	my $r = $self->serializer->deserialize($result->{result});
 	$result->{result} = $r;
 	return $result;
+}
+
+=head2 fetch_first_result
+
+Fetch a result using the task id
+
+=cut
+
+sub fetch_first_result {
+	my ($self,$task_id) = @_;
+	$self->{current_table} = 'result';
+	my $sql = qq{
+		SELECT *
+		FROM "$self->{database_schema}".$self->{current_table}
+		WHERE task_id=?
+		ORDER BY result_id DESC
+	};
+	my $result = $self->select_first(sql => $sql,data => [$task_id]) || return;
+
+	return $self->serializer->deserialize($result->{result});
 }
 
 =head2 fetch_results
