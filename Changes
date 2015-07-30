@@ -1,6 +1,7 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+ - Maintenance fix
 
 0.23    2015-07-29 10:34:19 Europe/Copenhagen
  - Add some methods for administration and change the way some (hopefully) internal methods works

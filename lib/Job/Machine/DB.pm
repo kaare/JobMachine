@@ -649,7 +649,9 @@ Very light weight order-by builder
 
 sub order_by {
 	my ($self, $order) = @_;
-	my $order_by = join(',', ("$_") x keys @$order);
+	return unless ref $order eq 'HASH';
+
+	my $order_by = join(',', ("$_") x keys %$order);
 	$order_by = "ORDER BY $order_by" if $order_by;
 	return $order_by;
 }
