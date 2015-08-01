@@ -33,6 +33,7 @@ sub receive {
 	my $self = shift;
 	$self->startup;
 	my $db = $self->{db};
+	$self->_init_chores;
 	$self->subscribe($self->{queue});
 	$self->_check_queue($self->{queue});
 	while ($self->keep_running && (my $notifies = $db->set_listen($self->timeout))) {
@@ -48,12 +49,22 @@ sub _check_queue {
 	my $self = shift;
 	my $db = $self->{db};
 	while (my $task = $self->db->fetch_work_task) {
-		## og process call
+		## log process call
 		$self->process($task);
 	}
 }
 
-sub _do_chores {
+=head2 _init_chores
+
+Push the internal chores onto the chores list.
+
+By pushing, we make sure that we don't destroy any existing chores.
+
+NOTE. This is an internal method, meant to make sure that important Job::Machine tasks get done.
+
+=cut
+
+sub _init_chores {
 	my $self = shift;
 	my $db = $self->{db};
 	my @chores = (
@@ -73,7 +84,31 @@ sub _do_chores {
 			$self->job_log("Removed tasks: $number");
 		},
 	);
-	my $chore = $chores[int(rand(@chores))];
+	push @{ $self->{chores} }, @chores;
+}
+
+=head2 add_chore
+
+Takes a coderef and push it onto the chores list.
+
+The supplied coderef can do anything, but is supposed to perform some kind of housekeeping.
+
+It takes turns with the other chores, including the internal ones.
+
+=cut
+
+sub add_chore {
+	my ($self, $chore) = @_ ;
+	return unless ref $chore eq 'CODE';
+
+	push @{ $self->{chores} }, $chore;
+}
+
+sub _do_chores {
+	my $self = shift;
+	my $chores = $self->{chores};
+	my $idx = int(rand(@{ $chores }));
+	my $chore = $chores->[$idx];
 	$self->$chore;
 }
 
