@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+
+0.25    2015-08-01 12:15:47 Europe/Copenhagen
  - Upgrade the chores to be a package variable, so new chores can be added from the outside,
    using the add_chores method
 
