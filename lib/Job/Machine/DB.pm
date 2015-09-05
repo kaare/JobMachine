@@ -270,9 +270,9 @@ sub fetch_task {
 	my ($self,$id) = @_;
 	$self->{current_table} = 'task';
 	my $sql = qq{
-		SELECT *
-		FROM "$self->{database_schema}".$self->{current_table}
-		JOIN "$self->{database_schema}".class USING (class_id)
+		SELECT t.*, c.name
+		FROM "$self->{database_schema}".$self->{current_table} t
+		JOIN "$self->{database_schema}".class c USING (class_id)
 		WHERE task_id=?
 	};
 	my $task = $self->select_first(sql => $sql,data => [$id]) or return;
@@ -440,7 +440,7 @@ sub get_tasks {
 	my ($where_clause, @where_args) = $self->where_clause($args{where});
 	my $order_by = $self->order_by($args{order_by});
 	my $sql = qq{
-		SELECT *
+		SELECT t.*, c.name
 		FROM "$self->{database_schema}".$self->{current_table} t
 		JOIN "$self->{database_schema}".class c USING (class_id)
 		$where_clause
