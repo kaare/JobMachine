@@ -1,6 +1,8 @@
 Revision history for Job-Machine
 
 {{$NEXT}}
+
+0.26    2015-09-05 12:30:03 Europe/Copenhagen
  - Only get name from the class when fetching tasks
 
 0.25    2015-08-01 12:15:47 Europe/Copenhagen
